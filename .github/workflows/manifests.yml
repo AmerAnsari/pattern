@@ -1,0 +1,46 @@
+name: manifests
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Rule 2 compares this PR against the branch it targets, so the base
+          # commit has to be in the clone.
+          fetch-depth: 0
+
+      - name: Check the manifests parse
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, sys
+          bad = False
+          for path in sorted(pathlib.Path(".").rglob("*.json")):
+              if ".git" in path.parts:
+                  continue
+              try:
+                  json.loads(path.read_text(encoding="utf-8"))
+              except ValueError as exc:
+                  print(f"✘ {path}: {exc}")
+                  bad = True
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: Check the version
+        env:
+          # Through the environment, never interpolated into the shell — a PR
+          # title is attacker-controlled text.
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE_REF"
+          python3 scripts/check-versions.py \
+            --base-ref "origin/$BASE_REF" \
+            --pr-title "$PR_TITLE"
