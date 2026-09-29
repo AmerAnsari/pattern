@@ -19,7 +19,7 @@ HOOK_CWD=""; HOOK_SESSION_ID=""
   IFS= read -r HOOK_SESSION_ID
 } < <(printf '%s' "$PAYLOAD" | python3 "$LIB/hookvars.py" cwd session_id 2>/dev/null) || true
 export PATTERNSCRIBE_SESSION_ID="$HOOK_SESSION_ID"
-export PATTERNSCRIBE_CWD="${HOOK_CWD:-$PWD}"
+export PATTERNSCRIBE_CWD="${HOOK_CWD:-$(pwd)}"
 
 python3 - "$LIB" <<'PY' 2>/dev/null || exit 0
 import os
