@@ -12,8 +12,12 @@ PLUGIN="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LIB="$PLUGIN/lib"
 PAYLOAD="$(cat 2>/dev/null || true)"
 
-eval "$(printf '%s' "$PAYLOAD" | python3 "$LIB/hookvars.py" cwd session_id 2>/dev/null)" || true
-: "${HOOK_CWD:=}" "${HOOK_SESSION_ID:=}"
+# Positional read; the payload is data and never becomes shell. See session-end.
+HOOK_CWD=""; HOOK_SESSION_ID=""
+{
+  IFS= read -r HOOK_CWD
+  IFS= read -r HOOK_SESSION_ID
+} < <(printf '%s' "$PAYLOAD" | python3 "$LIB/hookvars.py" cwd session_id 2>/dev/null) || true
 export PATTERN_SESSION_ID="$HOOK_SESSION_ID"
 export PATTERN_CWD="${HOOK_CWD:-$PWD}"
 

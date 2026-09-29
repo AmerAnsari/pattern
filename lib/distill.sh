@@ -100,7 +100,7 @@ if runner.get("prompt") == "stdin":
 elif runner.get("prompt") != "file":
     argv.append(prompt)
 
-env = {**os.environ, "PATTERN_DISTILL": "1", "PATTERN_CWD": str(root)}
+env = cfg.runner_env(PATTERN_DISTILL="1", PATTERN_CWD=str(root))
 # Log the shape of the command, never the prompt itself.
 shown = " ".join(a if len(a) < 40 else a[:37] + "…" for a in argv[:8])
 print(f"runner: {shown}  ({len(argv)} args, prompt {len(prompt)} chars)")
