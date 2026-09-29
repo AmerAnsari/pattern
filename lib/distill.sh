@@ -12,8 +12,8 @@ PLUGIN="$(dirname "$LIB")"
 DIGEST="${1:?usage: distill.sh <digest-file> [session-id]}"
 SESSION_ID="${2:-}"
 
-ROOT="$(PATTERN_CWD="${PATTERN_CWD:-$PWD}" python3 "$LIB/config.py" path root)"
-DATA="$(PATTERN_CWD="$ROOT" python3 "$LIB/config.py" path data)"
+ROOT="$(PATTERNSCRIBE_CWD="${PATTERNSCRIBE_CWD:-$PWD}" python3 "$LIB/config.py" path root)"
+DATA="$(PATTERNSCRIBE_CWD="$ROOT" python3 "$LIB/config.py" path data)"
 STATE="$DATA/state"
 LOG="$STATE/distill.log"
 
@@ -24,15 +24,15 @@ trap cleanup EXIT
 
 log "start session=${SESSION_ID:-?} digest=$DIGEST"
 
-MODEL="$(PATTERN_CWD="$ROOT" python3 "$LIB/config.py" resolve-model 2>>"$LOG")"
+MODEL="$(PATTERNSCRIBE_CWD="$ROOT" python3 "$LIB/config.py" resolve-model 2>>"$LOG")"
 if [ -z "$MODEL" ]; then
   log "no usable model — pausing until configured"
-  printf 'pattern: no usable model. Set runner.model in %s/.pattern/config.json\n' "$ROOT" \
+  printf 'pattern: no usable model. Set runner.model in %s/.patternscribe/config.json\n' "$ROOT" \
     > "$STATE/needs-config"
   exit 0
 fi
 
-PATTERN_CWD="$ROOT" python3 - "$PLUGIN" "$ROOT" "$DATA" "$DIGEST" "$MODEL" "$SESSION_ID" <<'PY' >> "$LOG" 2>&1
+PATTERNSCRIBE_CWD="$ROOT" python3 - "$PLUGIN" "$ROOT" "$DATA" "$DIGEST" "$MODEL" "$SESSION_ID" <<'PY' >> "$LOG" 2>&1
 import json, os, subprocess, sys, tempfile
 from pathlib import Path
 
@@ -100,7 +100,7 @@ if runner.get("prompt") == "stdin":
 elif runner.get("prompt") != "file":
     argv.append(prompt)
 
-env = cfg.runner_env(PATTERN_DISTILL="1", PATTERN_CWD=str(root))
+env = cfg.runner_env(PATTERNSCRIBE_DISTILL="1", PATTERNSCRIBE_CWD=str(root))
 # Log the shape of the command, never the prompt itself.
 shown = " ".join(a if len(a) < 40 else a[:37] + "…" for a in argv[:8])
 print(f"runner: {shown}  ({len(argv)} args, prompt {len(prompt)} chars)")

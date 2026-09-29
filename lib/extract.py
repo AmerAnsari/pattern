@@ -249,7 +249,7 @@ class Digest:
 
 
 def build(transcript: Path, redact_globs, project_root=None) -> Digest:
-    adapter = host_base.load(os.environ.get("PATTERN_HOST", "claude"))
+    adapter = host_base.load(os.environ.get("PATTERNSCRIBE_HOST", "claude"))
     if adapter is None:
         raise SystemExit("pattern: no host adapter available for this environment")
     digest = Digest(redact_globs, project_root)

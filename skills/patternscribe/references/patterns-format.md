@@ -1,6 +1,6 @@
 # The PATTERNS.md contract
 
-Both the background distiller and the live `/pattern` commands write this file. They
+Both the background distiller and the live `/patternscribe` commands write this file. They
 agree on the format described here, which is why a profile survives being maintained by
 different models on different days.
 
@@ -102,5 +102,5 @@ Evidence: user stopped the agent at plan approval: "we should care about less an
 query".
 ```
 
-Never rewrite an existing block. `/pattern why` reads this file, so a rule with no
+Never rewrite an existing block. `/patternscribe why` reads this file, so a rule with no
 block here cannot be explained — which is the signal that it was hand-written.

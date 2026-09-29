@@ -4,12 +4,12 @@ This plugin runs under several agent CLIs. They differ in two ways that matter.
 
 ## What each host supports
 
-| Host | Skill | `/pattern` command | Injects profile at start | Automatic capture at exit |
+| Host | Skill | `/patternscribe` command | Injects profile at start | Automatic capture at exit |
 |---|---|---|---|---|
 | Claude Code | yes | yes | yes | **yes** |
-| Cursor | yes | yes | yes | no — use `/pattern` |
-| Codex | yes | yes | no | no — use `/pattern` |
-| Gemini CLI | yes | via `GEMINI.md` | no | no — use `/pattern` |
+| Cursor | yes | yes | yes | no — use `/patternscribe` |
+| Codex | yes | yes | no | no — use `/patternscribe` |
+| Gemini CLI | yes | via `GEMINI.md` | no | no — use `/patternscribe` |
 
 Automatic capture needs two things from the host: a hook that fires when a session ends,
 and a transcript on disk in a format this plugin can read. Only Claude Code currently
@@ -17,10 +17,10 @@ provides both.
 
 **Everything else works everywhere.** The live commands reflect on the conversation the
 agent is already in, so they need no transcript file and no hook. On a host without
-automatic capture, run `/pattern` when you finish something — the result is identical,
+automatic capture, run `/patternscribe` when you finish something — the result is identical,
 it just isn't unattended.
 
-`/pattern doctor` reports which of these applies here rather than leaving you to guess.
+`/patternscribe doctor` reports which of these applies here rather than leaving you to guess.
 
 ## Tool names
 
@@ -51,7 +51,7 @@ the event shape described there — in particular to surface, if the host record
 - whether a tool call came back as an error
 
 Those three are most of the signal. A host that records none of them can still be
-supported; capture just falls back to the live `/pattern` command.
+supported; capture just falls back to the live `/patternscribe` command.
 
 Adapters must never emit tool output or file contents. Everything they yield ends up in
 a digest that is handed to a model.

@@ -6,9 +6,9 @@
 set -euo pipefail
 
 LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="${1:-${PATTERN_CWD:-$PWD}}"
+ROOT="${1:-${PATTERNSCRIBE_CWD:-$PWD}}"
 
-DATA="$(PATTERN_CWD="$ROOT" python3 "$LIB/config.py" path data)"
+DATA="$(PATTERNSCRIBE_CWD="$ROOT" python3 "$LIB/config.py" path data)"
 STATE="$DATA/state"
 
 mkdir -p "$STATE"
@@ -21,7 +21,7 @@ fi
 if [ ! -f "$DATA/config.json" ]; then
   cat > "$DATA/config.json" <<'JSON'
 {
-  "_comment": "Overrides for the pattern plugin. Anything you leave out keeps its default; run `/pattern config` to see the merged result.",
+  "_comment": "Overrides for the pattern plugin. Anything you leave out keeps its default; run `/patternscribe config` to see the merged result.",
   "enabled": true,
   "use_superpowers": true
 }
@@ -71,7 +71,7 @@ if [ ! -f "$DATA/journal.md" ]; then
 # Evidence journal
 
 Why each rule in PATTERNS.md exists: what was said, when, and in which session.
-Append-only. `/pattern why <rule>` searches this file.
+Append-only. `/patternscribe why <rule>` searches this file.
 MD
 fi
 

@@ -1,5 +1,5 @@
 {
-  "name": "pattern",
+  "name": "patternscribe",
   "version": "0.1.0",
   "description": "Learns how you work from every session — corrections, rejected actions, mistakes — and applies it to the next one.",
   "contextFileName": "GEMINI.md"

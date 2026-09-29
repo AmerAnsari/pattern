@@ -1,15 +1,15 @@
 ---
-name: pattern
+name: patternscribe
 description: Use when the user asks what you have learned about how they work, asks how they would have done something, wants your point of view on an approach before committing to it, corrects you and wants that correction remembered, or asks to record, show, explain, forget or configure learned patterns. Also use when a session starts with unanalysed sessions pending.
 ---
 
-# Pattern
+# Patternscribe
 
 ## Overview
 
 This project keeps a profile of how its owner wants work done, learned from what they
 corrected in past sessions. The profile lives at `<data_dir>/PATTERNS.md`, the evidence
-behind it at `<data_dir>/journal.md`, and `<data_dir>` is `.pattern/` unless the config
+behind it at `<data_dir>/journal.md`, and `<data_dir>` is `.patternscribe/` unless the config
 says otherwise.
 
 Most of the time the profile maintains itself: a hook analyses each finished session in
@@ -67,7 +67,7 @@ discipline, inlined so this plugin stands alone:
    project rather than this one.
 4. State plainly what you changed. If you changed nothing, say that.
 
-## capture — `/pattern`
+## capture — `/patternscribe`
 
 Distil the session you are in right now. Use it the moment the user corrects you, rather
 than hoping the session-end hook catches it later.
@@ -85,7 +85,7 @@ than hoping the session-end hook catches it later.
    the file.
 7. Report what changed in one line.
 
-## suggest — `/pattern suggest`
+## suggest — `/patternscribe suggest`
 
 Give your point of view, grounded in what this user actually wants.
 
@@ -113,25 +113,25 @@ learned preference, and the user cannot tell which parts to trust.
 If the profile is empty or silent on everything that matters here, say so directly —
 "nothing learned about this yet, so this is just my read" — and give the opinion anyway.
 
-## lead — `/pattern lead`
+## lead — `/patternscribe lead`
 
 Same two learning steps as **suggest**, then do the work instead of printing about it.
 Before starting, state in one or two lines which rules you are working under, so the
 user can see the basis when they come back. Stop and ask if the profile is silent on a
 decision that would be expensive to reverse.
 
-## show — `/pattern show`
+## show — `/patternscribe show`
 
 Print `PATTERNS.md`, highest counts first. Note how many sessions it was built from
 (the header) and where the file is, so the user can edit it by hand.
 
-## why — `/pattern why <text>`
+## why — `/patternscribe why <text>`
 
 Search `<data_dir>/journal.md` for the rule and show the dated evidence: what was said,
 when, in which session. If the rule is in `PATTERNS.md` but has no journal entry, say so
 — it was probably hand-written, which is worth knowing.
 
-## forget — `/pattern forget <text>`
+## forget — `/patternscribe forget <text>`
 
 1. Show the user the exact bullet you are about to remove and its evidence.
 2. Remove it from `PATTERNS.md` and add a dated "removed" entry to `journal.md` saying
@@ -139,14 +139,14 @@ when, in which session. If the rule is in `PATTERNS.md` but has no journal entry
 3. If they want it gone permanently, re-add it under `## Archive` marked `(pinned)`
    with `do not re-learn` — pinned bullets are never rewritten, so it cannot come back.
 
-## config — `/pattern config`
+## config — `/patternscribe config`
 
 Run `python3 "$PLUGIN_LIB/config.py" show`, explain the resolved values, and edit
-`<project>/.pattern/config.json` when asked. That file holds only overrides; anything
+`<project>/.patternscribe/config.json` when asked. That file holds only overrides; anything
 absent falls back to the plugin's `config.default.json`. See `references/runners.md`
 before changing the `runner` block.
 
-## doctor — `/pattern doctor`
+## doctor — `/patternscribe doctor`
 
 Report, in this order, stopping at the first thing that is broken:
 

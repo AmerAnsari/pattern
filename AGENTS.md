@@ -1,4 +1,4 @@
-# Working on `pattern`
+# Working on `patternscribe`
 
 Notes for anyone — human or agent — changing this repo.
 
@@ -12,8 +12,8 @@ its owner wants work done. Packaged for several hosts from one source tree.
 ```
 .claude-plugin/ .cursor-plugin/ .codex-plugin/   per-host manifests
 gemini-extension.json  GEMINI.md                 Gemini CLI
-skills/pattern/                                  the skill the live agent follows
-commands/pattern.md                              the /pattern slash command
+skills/patternscribe/                            the skill the live agent follows
+commands/patternscribe.md                        the /patternscribe slash command
 hooks/                                           session-start / session-end, + manifests
 lib/                                             extraction, config, the distiller
 prompts/distill.md                               what the background model is told
@@ -50,7 +50,7 @@ session is worth a model call. Any new capture path needs the same gate.
 
 - **`--add-dir` is variadic.** Passing the prompt as a trailing argument gets it eaten as
   a directory. The default runner uses stdin; leave it that way.
-- **A distill run is itself a session.** Everything it spawns sets `PATTERN_DISTILL=1`
+- **A distill run is itself a session.** Everything it spawns sets `PATTERNSCRIBE_DISTILL=1`
   and both hooks return immediately when they see it. Without that it analyses its own
   exit for ever.
 - **`--max-budget-usd` too low reads as failure.** A budget-exceeded error means the
@@ -87,7 +87,7 @@ echo '{"cwd":"<project>","session_id":"x","transcript_path":"..."}' | bash hooks
 echo '{"cwd":"<project>"}' | bash hooks/session-start
 
 # the distiller without spending: a runner that only prints
-# see skills/pattern/references/runners.md, writes_files:false
+# see skills/patternscribe/references/runners.md, writes_files:false
 ```
 
 Before shipping a change to the prompt or the merge rules, run the distiller twice
@@ -97,10 +97,10 @@ whole thing rests on.
 
 ## Adding a host
 
-See `skills/pattern/references/host-tools.md`. Implement the four functions in
+See `skills/patternscribe/references/host-tools.md`. Implement the four functions in
 `lib/hosts/base.py`, register the name, add a manifest. Automatic capture needs a
 session-end hook and a readable transcript; without them the host still gets the skill
-and the `/pattern` commands, which is most of the value.
+and the `/patternscribe` commands, which is most of the value.
 
 ## Credits
 

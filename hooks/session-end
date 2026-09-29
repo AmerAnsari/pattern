@@ -8,7 +8,7 @@ set -uo pipefail
 
 # A distill run is itself a session. Without this it would analyse its own exit,
 # for ever.
-[ -n "${PATTERN_DISTILL:-}" ] && exit 0
+[ -n "${PATTERNSCRIBE_DISTILL:-}" ] && exit 0
 
 PLUGIN="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LIB="$PLUGIN/lib"
@@ -27,7 +27,7 @@ HOOK_SESSION_ID=""; HOOK_TRANSCRIPT_PATH=""; HOOK_CWD=""; HOOK_REASON=""
         session_id transcript_path cwd reason 2>/dev/null) || true
 
 CWD="${HOOK_CWD:-$PWD}"
-export PATTERN_CWD="$CWD"
+export PATTERNSCRIBE_CWD="$CWD"
 
 ROOT="$(python3 "$LIB/config.py" path root 2>/dev/null)" || exit 0
 [ -z "$ROOT" ] && exit 0
