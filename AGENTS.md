@@ -58,6 +58,11 @@ session is worth a model call. Any new capture path needs the same gate.
 - **`setsid` is Linux-only.** macOS and BSD take the `nohup` branch.
 - **Hook scripts are extensionless on purpose.** Claude Code's Windows detection
   prepends `bash` to any command containing `.sh`, which would double-invoke them.
+- **`privacyPolicyUrl` warns in `claude plugin validate`.** The directory portal asks
+  for it in `plugin.json`; Claude Code does not know the field and reports it as an
+  unknown top-level key that it strips at load time. Both are right, and the field is
+  harmless — it exists for the directory. Do not "fix" the warning by removing it, and
+  do not run `claude plugin validate --strict` in CI expecting a clean pass.
 - **Host-injected text arrives in the user role.** Task notifications, interruption
   notices and canned rejection blurbs are filtered by `SYNTHETIC` and
   `SYNTHETIC_FEEDBACK` in `extract.py`. Without those you learn rules about the harness

@@ -183,6 +183,8 @@ the network — you do.
 
 ## Privacy
 
+Permanent link to this section: [Privacy](https://github.com/AmerAnsari/patternscribe#privacy)
+
 - Nothing leaves your machine except that one model call, which your agent already makes.
 - Nothing is written outside the project directory.
 - Transcripts are reduced locally to a small digest first. **Tool output and file
