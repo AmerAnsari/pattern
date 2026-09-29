@@ -1,8 +1,9 @@
 name: manifests
 
 on:
+  # Every pull request, not only those targeting main, so a stacked PR is
+  # checked too.
   pull_request:
-    branches: [main]
 
 permissions:
   contents: read
@@ -40,7 +41,10 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
-          git fetch --no-tags --depth=1 origin "$BASE_REF"
+          # fetch-depth: 0 above already brought the base branch down. The
+          # explicit fetch is only a fallback and must not fail the check on its
+          # own — a network hiccup says nothing about the version.
+          git fetch --no-tags --depth=1 origin "$BASE_REF" || true
           python3 scripts/check-versions.py \
             --base-ref "origin/$BASE_REF" \
             --pr-title "$PR_TITLE"
