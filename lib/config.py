@@ -23,9 +23,13 @@ from pathlib import Path
 CONFIG_RELPATH = Path(".patternscribe") / "config.json"
 
 # The runner is a separate program that can send data off the machine, so it is
-# given only what it needs to start and to find its own credentials — not a copy
-# of the whole environment. A secret this plugin never passes on cannot be
+# given only what it needs to start — not a copy of the whole environment, and
+# deliberately no credential. A secret this plugin never passes on cannot be
 # leaked by it, by accident or otherwise.
+#
+# Nothing here authenticates anything: these are paths, locale and proxy
+# settings. The runner finds its own credentials the way it normally does, from
+# its own configuration or keychain, which it reaches through HOME.
 RUNNER_ENV_KEYS = (
     "PATH", "HOME", "USER", "LOGNAME", "SHELL", "TMPDIR", "LANG", "LC_ALL",
     "TERM", "SystemRoot", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "ComSpec",
@@ -34,9 +38,11 @@ RUNNER_ENV_KEYS = (
     "XDG_CONFIG_HOME", "XDG_CACHE_HOME",
 )
 
-# Prefixes the configured runner needs to authenticate as the user. Whatever
-# else is in their shell stays in their shell.
-RUNNER_ENV_PREFIXES = ("ANTHROPIC_", "CLAUDE_", "AWS_", "GOOGLE_", "AZURE_", "PATTERNSCRIBE_")
+# Only this plugin's own variables are forwarded by prefix. If a runner needs a
+# credential from the environment, the user names it in `runner.pass_env`
+# themselves — this plugin never decides on its own which of their secrets to
+# hand to a program that talks to the network.
+RUNNER_ENV_PREFIXES = ("PATTERNSCRIBE_",)
 
 PROBE_TTL_SECONDS = 30 * 24 * 3600
 PROBE_TIMEOUT_SECONDS = 90
@@ -50,12 +56,24 @@ PROBE_MISS = ("not found", "not available", "unavailable", "does not exist",
              "permission", "unauthorized")
 
 
-def runner_env(**extra: str) -> dict:
-    """The environment handed to the runner: an allowlist, plus `extra`."""
+def runner_env(config: dict | None = None, **extra: str) -> dict:
+    """The environment handed to the runner: an allowlist, plus `extra`.
+
+    `runner.pass_env` lets the user name variables to forward as well. It is
+    empty by default, so out of the box no credential of theirs reaches the
+    runner through this plugin. Someone whose runner authenticates from the
+    environment rather than a keychain opts in explicitly, naming the variable
+    they chose to share.
+    """
+    allowed = set(RUNNER_ENV_KEYS)
+    for name in ((config or {}).get("runner", {}).get("pass_env") or []):
+        if isinstance(name, str) and name.strip():
+            allowed.add(name.strip())
+
     env = {
         key: value
         for key, value in os.environ.items()
-        if key in RUNNER_ENV_KEYS or key.startswith(RUNNER_ENV_PREFIXES)
+        if key in allowed or key.startswith(RUNNER_ENV_PREFIXES)
     }
     env.update(extra)
     return env
@@ -90,7 +108,7 @@ def load(root: Path | None = None) -> dict:
         try:
             override = json.loads(override_path.read_text(encoding="utf-8"))
         except ValueError as exc:
-            print(f"pattern: ignoring malformed {override_path}: {exc}", file=sys.stderr)
+            print(f"patternscribe: ignoring malformed {override_path}: {exc}", file=sys.stderr)
             override = {}
         runner = {**config.get("runner", {}), **override.pop("runner", {})}
         config.update(override)
@@ -146,7 +164,7 @@ def resolve_model(config: dict, root: Path | None = None, allow_probe: bool = Tr
 
     command = runner.get("command", "claude")
     for candidate in runner.get("model_probe") or ["opus"]:
-        if _model_works(command, candidate):
+        if _model_works(command, candidate, config):
             _write_probe(cache_path, candidate)
             return candidate, "probed"
 
@@ -154,7 +172,7 @@ def resolve_model(config: dict, root: Path | None = None, allow_probe: bool = Tr
     return None, "probe found no available model"
 
 
-def _model_works(command: str, model: str) -> bool:
+def _model_works(command: str, model: str, config: dict | None = None) -> bool:
     """Ask the runner for one word and see whether the model answers at all."""
     try:
         result = subprocess.run(
@@ -165,7 +183,7 @@ def _model_works(command: str, model: str) -> bool:
             capture_output=True,
             text=True,
             timeout=PROBE_TIMEOUT_SECONDS,
-            env=runner_env(PATTERNSCRIBE_DISTILL="1"),
+            env=runner_env(config, PATTERNSCRIBE_DISTILL="1"),
         )
     except (OSError, subprocess.SubprocessError):
         return False

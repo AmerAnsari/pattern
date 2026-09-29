@@ -166,10 +166,20 @@ time; everything that executes is in this repository.
 own account and credentials. This plugin has no server, no endpoint and no account of its
 own, and nothing is ever sent to its author.
 
-**The runner receives a fixed allowlist of environment variables** — enough to start and to
-find its own credentials (`PATH`, `HOME`, proxy and certificate settings, and
-`ANTHROPIC_*`/`CLAUDE_*`/`AWS_*`/`GOOGLE_*`/`AZURE_*`). The rest of your environment is not
-passed on, so a token this plugin never receives cannot be forwarded by it.
+**The runner receives no credentials from this plugin.** It gets a fixed allowlist of
+variables that authenticate nothing — `PATH`, `HOME`, locale, proxy and certificate
+settings — and finds its own credentials the way it normally does, from its own config or
+keychain. On a typical machine that is 10 variables out of 60.
+
+If your runner authenticates from an environment variable instead, name it yourself:
+
+```jsonc
+{ "runner": { "pass_env": ["YOUR_RUNNERS_KEY_VARIABLE"] } }
+```
+
+Name the variable your runner actually reads. `pass_env` is empty by default, and this
+plugin never decides on its own which of your secrets to hand to a program that talks to
+the network — you do.
 
 ## Privacy
 
@@ -202,7 +212,8 @@ shipped defaults.
 
   "runner": {
     "command": "claude",
-    "model": null               // null -> probe for Opus
+    "model": null,              // null -> probe for Opus
+    "pass_env": []              // env vars to forward; none by default
   }
 }
 ```
