@@ -194,6 +194,9 @@ Permanent link to this section: [Privacy](https://github.com/AmerAnsari/patterns
   config excludes paths (`.env*`, `*.pem`, `*.key`, `secrets/**` by default).
 - The profile records how you work, never what you worked on. Secrets, code, personal
   data and one-off task facts are out of scope by design.
+- `journal.md` quotes what you said, so you can see the evidence behind a rule. If you
+  typed something personal in a correction, that sentence can be quoted there. It stays
+  on your machine like everything else, and deleting the line removes it.
 - `state/distill.log` records the command's shape, never the prompt or the profile — it
   is safe to paste into a bug report.
 
