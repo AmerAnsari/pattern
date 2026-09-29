@@ -90,7 +90,7 @@ Keep the whole profile under 120 bullets. If it exceeds that, archive the weakes
 
 1. Update the header: bump `sessions analyzed`, set `updated` to today.
 2. Append to `{journal_file}` one dated block per rule you added or changed, each with
-   the quote or action it came from, so `/pattern why` can explain it later. Never
+   the quote or action it came from, so `/patternscribe why` can explain it later. Never
    rewrite existing journal entries.
 3. Write `{last_learned_file}` — at most five lines, what changed this run, in the form
    `+ <rule>` for added, `~ <rule>` for reinforced, `!` for replaced. This is what the

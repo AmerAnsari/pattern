@@ -3,7 +3,7 @@ description: Learn from this session, then show what you've learned or give your
 argument-hint: "[suggest | lead | show | why <rule> | forget <rule> | config | doctor]"
 ---
 
-Invoke the `pattern` skill and carry out the subcommand below. The skill defines every
+Invoke the `patternscribe` skill and carry out the subcommand below. The skill defines every
 procedure; follow it rather than improvising.
 
 Subcommand: `$ARGUMENTS`

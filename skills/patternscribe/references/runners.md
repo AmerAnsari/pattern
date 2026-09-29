@@ -3,7 +3,7 @@
 The background distiller shells out to a CLI. Which one is configuration, so this plugin
 is not tied to any particular model or vendor.
 
-Everything here goes in the `runner` block of `<project>/.pattern/config.json`. Only the
+Everything here goes in the `runner` block of `<project>/.patternscribe/config.json`. Only the
 keys you change need to be present.
 
 ## The contract
@@ -121,7 +121,7 @@ The plugin writes whatever it prints, after checking it looks like a profile.
 { "enabled": false }
 ```
 
-Hooks become no-ops. `/pattern` and `/pattern suggest` still work — they run in the live
+Hooks become no-ops. `/patternscribe` and `/patternscribe suggest` still work — they run in the live
 session and never invoke a runner at all.
 
 ## Checking your configuration

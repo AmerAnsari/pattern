@@ -1,2 +1,2 @@
-@./skills/pattern/SKILL.md
-@./skills/pattern/references/host-tools.md
+@./skills/patternscribe/SKILL.md
+@./skills/patternscribe/references/host-tools.md

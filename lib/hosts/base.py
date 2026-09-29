@@ -6,7 +6,7 @@ host, because the live agent can reflect on the conversation it is already in.
 
 To support a new host, add a module next to this one exposing the same four
 functions and register it in `registry` below. A host with no adapter loses
-only the unattended capture; `/pattern doctor` reports that plainly.
+only the unattended capture; `/patternscribe doctor` reports that plainly.
 
 An adapter normalises transcript records into this shape:
 

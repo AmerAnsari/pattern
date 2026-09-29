@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "use_superpowers": true,
-  "data_dir": ".pattern",
+  "data_dir": ".patternscribe",
   "budget_usd": 0.5,
   "min_signal": 1,
   "decay_sessions": 10,

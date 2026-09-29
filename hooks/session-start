@@ -6,7 +6,7 @@
 # Never blocks, never probes the network, always exits 0.
 set -uo pipefail
 
-[ -n "${PATTERN_DISTILL:-}" ] && exit 0
+[ -n "${PATTERNSCRIBE_DISTILL:-}" ] && exit 0
 
 PLUGIN="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LIB="$PLUGIN/lib"
@@ -18,8 +18,8 @@ HOOK_CWD=""; HOOK_SESSION_ID=""
   IFS= read -r HOOK_CWD
   IFS= read -r HOOK_SESSION_ID
 } < <(printf '%s' "$PAYLOAD" | python3 "$LIB/hookvars.py" cwd session_id 2>/dev/null) || true
-export PATTERN_SESSION_ID="$HOOK_SESSION_ID"
-export PATTERN_CWD="${HOOK_CWD:-$PWD}"
+export PATTERNSCRIBE_SESSION_ID="$HOOK_SESSION_ID"
+export PATTERNSCRIBE_CWD="${HOOK_CWD:-$PWD}"
 
 python3 - "$LIB" <<'PY' 2>/dev/null || exit 0
 import os
@@ -64,7 +64,7 @@ def enqueue_missed():
             return set()
         return {l.strip() for l in path.read_text(encoding="utf-8").splitlines() if l.strip()}
 
-    seen = ids(state / "analyzed") | ids(queue) | {os.environ.get("PATTERN_SESSION_ID", "")}
+    seen = ids(state / "analyzed") | ids(queue) | {os.environ.get("PATTERNSCRIBE_SESSION_ID", "")}
     missed = sorted({t.stem for t in adapter.recent_transcripts(root)} - seen)
     if missed:
         with queue.open("a", encoding="utf-8") as handle:
@@ -124,7 +124,7 @@ rules.sort(key=strength, reverse=True)
 shown = rules[: max(limit - 6, 4)]
 
 if rules:
-    lines.append("[pattern] Learned preferences for this project "
+    lines.append("[patternscribe] Learned preferences for this project "
                  f"({len(rules)} rule{'s' if len(rules) != 1 else ''}). "
                  "Follow these unless the user says otherwise.")
 current = None
@@ -152,7 +152,7 @@ if needs.is_file():
 
 if queue.is_file() and queue.read_text(encoding="utf-8").strip():
     pending = len([l for l in queue.read_text(encoding="utf-8").splitlines() if l.strip()])
-    notices.append(f"  {pending} session(s) still unanalysed — run /pattern to catch up.")
+    notices.append(f"  {pending} session(s) still unanalysed — run /patternscribe to catch up.")
 
 # Notices (what was just learned, what is broken, what is pending) are the
 # actionable part. They get their budget first; rules fill whatever is left.

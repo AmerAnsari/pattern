@@ -20,7 +20,7 @@ import sys
 import time
 from pathlib import Path
 
-CONFIG_RELPATH = Path(".pattern") / "config.json"
+CONFIG_RELPATH = Path(".patternscribe") / "config.json"
 
 # The runner is a separate program that can send data off the machine, so it is
 # given only what it needs to start and to find its own credentials — not a copy
@@ -36,7 +36,7 @@ RUNNER_ENV_KEYS = (
 
 # Prefixes the configured runner needs to authenticate as the user. Whatever
 # else is in their shell stays in their shell.
-RUNNER_ENV_PREFIXES = ("ANTHROPIC_", "CLAUDE_", "AWS_", "GOOGLE_", "AZURE_", "PATTERN_")
+RUNNER_ENV_PREFIXES = ("ANTHROPIC_", "CLAUDE_", "AWS_", "GOOGLE_", "AZURE_", "PATTERNSCRIBE_")
 
 PROBE_TTL_SECONDS = 30 * 24 * 3600
 PROBE_TIMEOUT_SECONDS = 90
@@ -67,7 +67,7 @@ def plugin_root() -> Path:
 
 def project_root(start: str | Path | None = None) -> Path:
     """Nearest enclosing git repo, else the directory we were handed."""
-    current = Path(start or os.environ.get("PATTERN_CWD") or Path.cwd()).resolve()
+    current = Path(start or os.environ.get("PATTERNSCRIBE_CWD") or Path.cwd()).resolve()
     for candidate in (current, *current.parents):
         if (candidate / ".git").exists():
             return candidate
@@ -101,7 +101,7 @@ def load(root: Path | None = None) -> dict:
 
 def data_dir(config: dict, root: Path | None = None) -> Path:
     root = root or project_root()
-    raw = str(config.get("data_dir") or ".pattern").replace("{slug}", slug(root))
+    raw = str(config.get("data_dir") or ".patternscribe").replace("{slug}", slug(root))
     path = Path(raw).expanduser()
     return path if path.is_absolute() else root / path
 
@@ -165,7 +165,7 @@ def _model_works(command: str, model: str) -> bool:
             capture_output=True,
             text=True,
             timeout=PROBE_TIMEOUT_SECONDS,
-            env=runner_env(PATTERN_DISTILL="1"),
+            env=runner_env(PATTERNSCRIBE_DISTILL="1"),
         )
     except (OSError, subprocess.SubprocessError):
         return False
