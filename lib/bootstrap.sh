@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Create this project's pattern data directory, if it isn't there already.
+# Create this project's data directory, if it isn't there already.
 # Idempotent: existing files are never touched.
 #
 # Usage: bootstrap.sh [project-root]
 set -euo pipefail
 
 LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="${1:-${PATTERNSCRIBE_CWD:-$PWD}}"
+
+# The project root comes from the caller, or from this plugin's own variable, or
+# from asking the shell where it is. Nothing here reads the installer's
+# environment — see the note in lib/config.py about what the runner is given.
+ROOT="${1:-${PATTERNSCRIBE_CWD:-$(pwd)}}"
 
 DATA="$(PATTERNSCRIBE_CWD="$ROOT" python3 "$LIB/config.py" path data)"
 STATE="$DATA/state"

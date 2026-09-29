@@ -12,7 +12,9 @@ PLUGIN="$(dirname "$LIB")"
 DIGEST="${1:?usage: distill.sh <digest-file> [session-id]}"
 SESSION_ID="${2:-}"
 
-ROOT="$(PATTERNSCRIBE_CWD="${PATTERNSCRIBE_CWD:-$PWD}" python3 "$LIB/config.py" path root)"
+# Asked of the shell rather than read out of the environment.
+CWD="${PATTERNSCRIBE_CWD:-$(pwd)}"
+ROOT="$(PATTERNSCRIBE_CWD="$CWD" python3 "$LIB/config.py" path root)"
 DATA="$(PATTERNSCRIBE_CWD="$ROOT" python3 "$LIB/config.py" path data)"
 STATE="$DATA/state"
 LOG="$STATE/distill.log"
