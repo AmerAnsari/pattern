@@ -14,8 +14,17 @@ PLUGIN="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LIB="$PLUGIN/lib"
 PAYLOAD="$(cat 2>/dev/null || true)"
 
-eval "$(printf '%s' "$PAYLOAD" | python3 "$LIB/hookvars.py" 2>/dev/null)" || true
-: "${HOOK_SESSION_ID:=}" "${HOOK_TRANSCRIPT_PATH:=}" "${HOOK_CWD:=}" "${HOOK_REASON:=}"
+# Read the fields positionally, one per line. The payload is data and is only
+# ever read into variables, never turned into shell for the interpreter to
+# run, so nothing arriving here can execute however it is spelled.
+HOOK_SESSION_ID=""; HOOK_TRANSCRIPT_PATH=""; HOOK_CWD=""; HOOK_REASON=""
+{
+  IFS= read -r HOOK_SESSION_ID
+  IFS= read -r HOOK_TRANSCRIPT_PATH
+  IFS= read -r HOOK_CWD
+  IFS= read -r HOOK_REASON
+} < <(printf '%s' "$PAYLOAD" | python3 "$LIB/hookvars.py" \
+        session_id transcript_path cwd reason 2>/dev/null) || true
 
 CWD="${HOOK_CWD:-$PWD}"
 export PATTERN_CWD="$CWD"

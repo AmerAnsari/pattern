@@ -153,9 +153,27 @@ nothing.
 Set `"enabled": false` in `.pattern/config.json` to stop background runs entirely;
 `/pattern` and `/pattern suggest` keep working, since they run inside your live session.
 
+## What it runs and what it sends
+
+Stated plainly, because it runs unattended:
+
+**It runs one program: the CLI named in `runner.command`** — by default `claude`, the agent
+you already have installed. It is launched detached after a session ends, with the prompt on
+stdin and a spending cap. Nothing is downloaded and no code arrives from anywhere at run
+time; everything that executes is in this repository.
+
+**That CLI sends the digest to whichever model provider it is configured for**, under your
+own account and credentials. This plugin has no server, no endpoint and no account of its
+own, and nothing is ever sent to its author.
+
+**The runner receives a fixed allowlist of environment variables** — enough to start and to
+find its own credentials (`PATH`, `HOME`, proxy and certificate settings, and
+`ANTHROPIC_*`/`CLAUDE_*`/`AWS_*`/`GOOGLE_*`/`AZURE_*`). The rest of your environment is not
+passed on, so a token this plugin never receives cannot be forwarded by it.
+
 ## Privacy
 
-- Nothing leaves your machine except the same model call your agent already makes.
+- Nothing leaves your machine except that one model call, which your agent already makes.
 - Nothing is written outside the project directory.
 - Transcripts are reduced locally to a small digest first. **Tool output and file
   contents are never included** — only which tools ran, with which paths, and what you

@@ -21,6 +21,23 @@ import time
 from pathlib import Path
 
 CONFIG_RELPATH = Path(".pattern") / "config.json"
+
+# The runner is a separate program that can send data off the machine, so it is
+# given only what it needs to start and to find its own credentials — not a copy
+# of the whole environment. A secret this plugin never passes on cannot be
+# leaked by it, by accident or otherwise.
+RUNNER_ENV_KEYS = (
+    "PATH", "HOME", "USER", "LOGNAME", "SHELL", "TMPDIR", "LANG", "LC_ALL",
+    "TERM", "SystemRoot", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "ComSpec",
+    "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy",
+    "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS",
+    "XDG_CONFIG_HOME", "XDG_CACHE_HOME",
+)
+
+# Prefixes the configured runner needs to authenticate as the user. Whatever
+# else is in their shell stays in their shell.
+RUNNER_ENV_PREFIXES = ("ANTHROPIC_", "CLAUDE_", "AWS_", "GOOGLE_", "AZURE_", "PATTERN_")
+
 PROBE_TTL_SECONDS = 30 * 24 * 3600
 PROBE_TIMEOUT_SECONDS = 90
 PROBE_BUDGET_USD = "0.10"
@@ -31,6 +48,17 @@ PROBE_OK = ("budget",)
 PROBE_MISS = ("not found", "not available", "unavailable", "does not exist",
              "invalid model", "unknown model", "not authorized", "access denied",
              "permission", "unauthorized")
+
+
+def runner_env(**extra: str) -> dict:
+    """The environment handed to the runner: an allowlist, plus `extra`."""
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key in RUNNER_ENV_KEYS or key.startswith(RUNNER_ENV_PREFIXES)
+    }
+    env.update(extra)
+    return env
 
 
 def plugin_root() -> Path:
@@ -137,7 +165,7 @@ def _model_works(command: str, model: str) -> bool:
             capture_output=True,
             text=True,
             timeout=PROBE_TIMEOUT_SECONDS,
-            env={**os.environ, "PATTERN_DISTILL": "1"},
+            env=runner_env(PATTERN_DISTILL="1"),
         )
     except (OSError, subprocess.SubprocessError):
         return False
