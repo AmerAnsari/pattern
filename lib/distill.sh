@@ -27,8 +27,11 @@ log "start session=${SESSION_ID:-?} digest=$DIGEST"
 MODEL="$(PATTERNSCRIBE_CWD="$ROOT" python3 "$LIB/config.py" resolve-model 2>>"$LOG")"
 if [ -z "$MODEL" ]; then
   log "no usable model — pausing until configured"
-  printf 'pattern: no usable model. Set runner.model in %s/.patternscribe/config.json\n' "$ROOT" \
-    > "$STATE/needs-config"
+  # Two things can cause this: no model available, or a runner that needs a
+  # credential from the environment that nobody told us to forward.
+  printf 'patternscribe: the runner produced no usable model. Check runner.model, and\n'\
+'runner.pass_env if your runner authenticates from an environment variable, in\n'\
+'%s/.patternscribe/config.json\n' "$ROOT" > "$STATE/needs-config"
   exit 0
 fi
 
@@ -100,7 +103,7 @@ if runner.get("prompt") == "stdin":
 elif runner.get("prompt") != "file":
     argv.append(prompt)
 
-env = cfg.runner_env(PATTERNSCRIBE_DISTILL="1", PATTERNSCRIBE_CWD=str(root))
+env = cfg.runner_env(conf, PATTERNSCRIBE_DISTILL="1", PATTERNSCRIBE_CWD=str(root))
 # Log the shape of the command, never the prompt itself.
 shown = " ".join(a if len(a) < 40 else a[:37] + "…" for a in argv[:8])
 print(f"runner: {shown}  ({len(argv)} args, prompt {len(prompt)} chars)")

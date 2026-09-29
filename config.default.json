@@ -21,6 +21,7 @@
     "model_probe": [
       "opus"
     ],
+    "pass_env": [],
     "prompt": "stdin",
     "writes_files": true,
     "timeout_seconds": 300,

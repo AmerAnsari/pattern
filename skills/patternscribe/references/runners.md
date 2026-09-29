@@ -34,6 +34,26 @@ Substituted into every string in `args`:
 | `{patterns_file}` | absolute path to `PATTERNS.md` |
 | `{prompt_file}` | a temp file holding the prompt — only when `"prompt": "file"` |
 
+## Credentials
+
+The runner is started with an allowlist of environment variables that authenticate
+nothing: `PATH`, `HOME`, locale, proxy and certificate settings, plus this plugin's own
+`PATTERNSCRIBE_*`. It is expected to find its credentials the way it normally does — its
+own config file or the system keychain, both reachable through `HOME`. That is how the
+default `claude` runner works, and it needs no configuration.
+
+A runner that authenticates from an environment variable instead needs you to name it:
+
+```jsonc
+{ "runner": { "pass_env": ["YOUR_RUNNERS_KEY_VARIABLE"] } }
+```
+
+`pass_env` is empty by default and nothing is inferred. This plugin does not decide which
+of your secrets to hand to a program that talks to the network.
+
+If a runner fails to start, `state/needs-config` and the next session start will say so,
+and `pass_env` is the second thing to check after `model`.
+
 ## How the prompt is delivered
 
 `"prompt"` picks one:
