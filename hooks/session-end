@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Runs when a session ends. Shell only — a hook is not a model turn, so it
+# cannot think about the session itself. What it can do is decide whether the
+# session is worth analysing and, if so, start something detached that can.
+#
+# Must never block the exit and must never fail loudly: every path exits 0.
+set -uo pipefail
+
+# A distill run is itself a session. Without this it would analyse its own exit,
+# for ever.
+[ -n "${PATTERN_DISTILL:-}" ] && exit 0
+
+PLUGIN="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LIB="$PLUGIN/lib"
+PAYLOAD="$(cat 2>/dev/null || true)"
+
+eval "$(printf '%s' "$PAYLOAD" | python3 "$LIB/hookvars.py" 2>/dev/null)" || true
+: "${HOOK_SESSION_ID:=}" "${HOOK_TRANSCRIPT_PATH:=}" "${HOOK_CWD:=}" "${HOOK_REASON:=}"
+
+CWD="${HOOK_CWD:-$PWD}"
+export PATTERN_CWD="$CWD"
+
+ROOT="$(python3 "$LIB/config.py" path root 2>/dev/null)" || exit 0
+[ -z "$ROOT" ] && exit 0
+[ "$(python3 "$LIB/config.py" get enabled 2>/dev/null)" = "true" ] || exit 0
+
+DATA="$(bash "$LIB/bootstrap.sh" "$ROOT" 2>/dev/null)" || exit 0
+STATE="$DATA/state"
+
+TRANSCRIPT="$HOOK_TRANSCRIPT_PATH"
+if [ ! -f "$TRANSCRIPT" ]; then
+  TRANSCRIPT="$(python3 - "$LIB" "$HOOK_SESSION_ID" "$ROOT" <<'PY' 2>/dev/null
+import sys
+from pathlib import Path
+sys.path[:0] = [sys.argv[1], str(Path(sys.argv[1]) / "hosts")]
+import base
+host = base.detect()
+found = host and host.find_transcript(sys.argv[2], sys.argv[3])
+print(found or "")
+PY
+)"
+fi
+[ -f "$TRANSCRIPT" ] || exit 0
+
+# Already counted? Re-reading it would inflate the confidence counts that make
+# the profile trustworthy.
+if [ -n "$HOOK_SESSION_ID" ] && [ -f "$STATE/analyzed" ] \
+   && grep -qxF "$HOOK_SESSION_ID" "$STATE/analyzed" 2>/dev/null; then
+  exit 0
+fi
+
+# Is there anything here worth paying a model to read?
+REDACT="$(python3 "$LIB/config.py" get redact 2>/dev/null | python3 -c 'import json,sys; print(",".join(json.loads(sys.stdin.read() or "[]")))' 2>/dev/null)"
+MIN="$(python3 "$LIB/config.py" get min_signal 2>/dev/null)"
+SCORE="$(python3 "$LIB/extract.py" "$TRANSCRIPT" --score --redact "$REDACT" 2>/dev/null)" || exit 0
+if [ "${SCORE:-0}" -lt "${MIN:-1}" ]; then
+  printf '%s\n' "$HOOK_SESSION_ID" > "$STATE/last-session" 2>/dev/null
+  exit 0
+fi
+
+# One distiller at a time per project. mkdir is the atomic part.
+if ! mkdir "$STATE/lock" 2>/dev/null; then
+  printf '%s\n' "$HOOK_SESSION_ID" >> "$STATE/queue" 2>/dev/null
+  exit 0
+fi
+
+DIGEST="$STATE/digest-${HOOK_SESSION_ID:-unknown}.md"
+if ! python3 "$LIB/extract.py" "$TRANSCRIPT" --session-id "$HOOK_SESSION_ID" \
+     --cwd "$ROOT" --redact "$REDACT" --out "$DIGEST" 2>/dev/null; then
+  rmdir "$STATE/lock" 2>/dev/null
+  exit 0
+fi
+
+# Detached, so closing the terminal doesn't take the analysis with it.
+# setsid is Linux-only; nohup + disown covers macOS and BSD.
+if command -v setsid >/dev/null 2>&1; then
+  setsid nohup bash "$LIB/distill.sh" "$DIGEST" "$HOOK_SESSION_ID" >/dev/null 2>&1 < /dev/null &
+else
+  nohup bash "$LIB/distill.sh" "$DIGEST" "$HOOK_SESSION_ID" >/dev/null 2>&1 < /dev/null &
+fi
+disown 2>/dev/null || true
+
+exit 0

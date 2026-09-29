@@ -1,0 +1,36 @@
+{
+  "name": "pattern",
+  "version": "0.1.0",
+  "description": "Learns how you work from every session — corrections, rejected actions, mistakes — and applies it to the next one.",
+  "author": {
+    "name": "Amer Ansari"
+  },
+  "homepage": "https://github.com/ameransari/pattern",
+  "repository": "https://github.com/ameransari/pattern",
+  "license": "MIT",
+  "keywords": [
+    "memory",
+    "preferences",
+    "self-improvement",
+    "session-analysis",
+    "workflow"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Pattern",
+    "shortDescription": "Turns your corrections into rules the agent follows next time",
+    "longDescription": "Pattern reads each finished session, distills the generalizable preferences behind your corrections and rejected actions, and writes them to a per-project PATTERNS.md that is injected into every later session. Ask it for its point of view with /pattern suggest, or let it take the lead with /pattern lead.",
+    "developerName": "Amer Ansari",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "What have you learned about how I work?",
+      "How would I have approached this?"
+    ],
+    "websiteURL": "https://github.com/ameransari/pattern"
+  }
+}

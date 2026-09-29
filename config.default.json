@@ -1,0 +1,45 @@
+{
+  "enabled": true,
+  "use_superpowers": true,
+  "data_dir": ".pattern",
+  "budget_usd": 0.5,
+  "min_signal": 1,
+  "decay_sessions": 10,
+  "max_inject_lines": 40,
+  "redact": [
+    ".env*",
+    "*.pem",
+    "*.key",
+    "*.p12",
+    "id_rsa*",
+    "secrets/**",
+    "**/credentials*"
+  ],
+  "runner": {
+    "command": "claude",
+    "model": null,
+    "model_probe": [
+      "opus"
+    ],
+    "prompt": "stdin",
+    "writes_files": true,
+    "timeout_seconds": 300,
+    "args": [
+      "-p",
+      "--model",
+      "{model}",
+      "--permission-mode",
+      "acceptEdits",
+      "--permission-prompts",
+      "none",
+      "--allowedTools",
+      "Read,Write,Edit,Glob,Grep",
+      "--max-budget-usd",
+      "{budget}",
+      "--no-session-persistence",
+      "--add-dir",
+      "{data_dir}"
+    ]
+  },
+  "max_inject_chars": 2500
+}

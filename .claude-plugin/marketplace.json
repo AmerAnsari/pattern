@@ -1,0 +1,18 @@
+{
+  "name": "ameransari",
+  "description": "Plugins by Amer Ansari",
+  "owner": {
+    "name": "Amer Ansari"
+  },
+  "plugins": [
+    {
+      "name": "pattern",
+      "description": "Learns how you work from every session — corrections, rejected actions, mistakes — and applies it to the next one.",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "Amer Ansari"
+      }
+    }
+  ]
+}

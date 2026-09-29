@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# Runs when a session starts. Whatever this prints is injected into the
+# session's context, so it is the only place the learned profile actually
+# reaches the agent. Keep it short — every line costs the session context.
+#
+# Never blocks, never probes the network, always exits 0.
+set -uo pipefail
+
+[ -n "${PATTERN_DISTILL:-}" ] && exit 0
+
+PLUGIN="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LIB="$PLUGIN/lib"
+PAYLOAD="$(cat 2>/dev/null || true)"
+
+eval "$(printf '%s' "$PAYLOAD" | python3 "$LIB/hookvars.py" cwd session_id 2>/dev/null)" || true
+: "${HOOK_CWD:=}" "${HOOK_SESSION_ID:=}"
+export PATTERN_SESSION_ID="$HOOK_SESSION_ID"
+export PATTERN_CWD="${HOOK_CWD:-$PWD}"
+
+python3 - "$LIB" <<'PY' 2>/dev/null || exit 0
+import os
+import sys
+from pathlib import Path
+
+lib = Path(sys.argv[1])
+sys.path.insert(0, str(lib))
+
+try:
+    import config as cfg
+    root = cfg.project_root()
+    conf = cfg.load(root)
+except Exception:
+    sys.exit(0)
+
+if not conf.get("enabled", True):
+    sys.exit(0)
+
+data = cfg.data_dir(conf, root)
+state = data / "state"
+patterns = data / "PATTERNS.md"
+if not patterns.is_file():
+    sys.exit(0)
+
+queue = state / "queue"
+
+
+def enqueue_missed():
+    """A hard kill skips the session-end hook, and a background run can die
+    mid-flight. Anything the ledger never recorded is queued here, so a lost
+    hook costs a delay rather than the lesson."""
+    sys.path.insert(0, str(lib / "hosts"))
+    import base as host_base
+
+    adapter = host_base.detect()
+    if adapter is None:
+        return
+
+    def ids(path):
+        if not path.is_file():
+            return set()
+        return {l.strip() for l in path.read_text(encoding="utf-8").splitlines() if l.strip()}
+
+    seen = ids(state / "analyzed") | ids(queue) | {os.environ.get("PATTERN_SESSION_ID", "")}
+    missed = sorted({t.stem for t in adapter.recent_transcripts(root)} - seen)
+    if missed:
+        with queue.open("a", encoding="utf-8") as handle:
+            handle.writelines(f"{session}\n" for session in missed)
+
+
+try:
+    enqueue_missed()
+except Exception:
+    pass
+
+limit = int(conf.get("max_inject_lines", 40))
+char_limit = int(conf.get("max_inject_chars", 2500))
+
+
+def clip(text, width=150):
+    """Shorten a long rule, keeping its (seen Nx) marker — that suffix is how a
+    session tells a firm rule from a first guess, so it must survive."""
+    if len(text) <= width:
+        return text
+    import re
+    marker = re.search(r"\s*\((?:seen|pinned).*$", text)
+    suffix = marker.group(0).strip() if marker else ""
+    body = text[: marker.start()] if marker else text
+    room = max(width - len(suffix) - 2, 40)
+    if len(body) > room:
+        body = body[: room - 1].rstrip() + "…"
+    return f"{body}  {suffix}".rstrip()
+lines, rules = [], []
+section = ""
+
+for raw in patterns.read_text(encoding="utf-8").splitlines():
+    if raw.startswith("## "):
+        section = raw[3:].split("—")[0].strip()
+        continue
+    if raw.startswith("### "):
+        section = raw[4:].strip()
+        continue
+    if raw.startswith("- ") and section.lower() != "archive":
+        rules.append((section, raw[2:].strip()))
+
+has_backlog = queue.is_file() and queue.read_text(encoding="utf-8").strip()
+if not rules and not (state / "last-learned.md").is_file() and not has_backlog:
+    sys.exit(0)
+
+
+def strength(entry):
+    text = entry[1]
+    if "(pinned)" in text:
+        return 10_000
+    import re
+    found = re.search(r"\(seen (\d+)x", text)
+    return int(found.group(1)) if found else 1
+
+
+rules.sort(key=strength, reverse=True)
+shown = rules[: max(limit - 6, 4)]
+
+if rules:
+    lines.append("[pattern] Learned preferences for this project "
+                 f"({len(rules)} rule{'s' if len(rules) != 1 else ''}). "
+                 "Follow these unless the user says otherwise.")
+current = None
+for sect, text in shown:
+    if sect != current:
+        lines.append(f"  {sect}:")
+        current = sect
+    lines.append(f"    - {clip(text)}")
+if len(rules) > len(shown):
+    lines.append(f"  (+{len(rules) - len(shown)} more in {patterns})")
+
+notices = []
+
+learned = state / "last-learned.md"
+if learned.is_file():
+    body = [l.strip() for l in learned.read_text(encoding="utf-8").splitlines() if l.strip()]
+    if body and body[0].lower() != "no new patterns":
+        notices.append("  Added after the last session:")
+        notices.extend(f"    {clip(l, 120)}" for l in body[:5])
+
+needs = state / "needs-config"
+if needs.is_file():
+    notices.append("  " + needs.read_text(encoding="utf-8").strip())
+    notices.append("  Auto-capture is paused until a usable model is configured.")
+
+if queue.is_file() and queue.read_text(encoding="utf-8").strip():
+    pending = len([l for l in queue.read_text(encoding="utf-8").splitlines() if l.strip()])
+    notices.append(f"  {pending} session(s) still unanalysed — run /pattern to catch up.")
+
+# Notices (what was just learned, what is broken, what is pending) are the
+# actionable part. They get their budget first; rules fill whatever is left.
+notices = notices[: max(limit - 4, 2)]
+budget = char_limit - sum(len(n) + 1 for n in notices)
+
+kept, used = [], 0
+for line in lines[: limit - len(notices)]:
+    if used + len(line) > budget and len(kept) > 3:
+        kept.append(f"  (+{len(lines) - len(kept)} more — see {patterns.name})")
+        break
+    kept.append(line)
+    used += len(line) + 1
+
+output = kept + notices
+if output:
+    print("\n".join(output))
+PY
+
+exit 0

@@ -1,0 +1,19 @@
+{
+  "name": "pattern",
+  "version": "0.1.0",
+  "description": "Learns how you work from every session — corrections, rejected actions, mistakes — and applies it to the next one.",
+  "author": {
+    "name": "Amer Ansari"
+  },
+  "homepage": "https://github.com/ameransari/pattern",
+  "repository": "https://github.com/ameransari/pattern",
+  "license": "MIT",
+  "keywords": [
+    "memory",
+    "preferences",
+    "self-improvement",
+    "session-analysis",
+    "workflow",
+    "conventions"
+  ]
+}
