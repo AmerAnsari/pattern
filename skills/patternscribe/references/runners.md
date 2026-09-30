@@ -90,7 +90,9 @@ and `pass_env` is the second thing to check after `model`.
 ```
 
 `--allowedTools` is deliberately narrow: the distiller has no reason to run commands or
-reach the network. `--permission-prompts none` means anything outside that list is
+reach the network. `Skill` is absent for the same reason, which is why the
+`use_superpowers` setting has no effect on the background run — it governs the live
+`/patternscribe` commands only. `--permission-prompts none` means anything outside that list is
 denied rather than hanging forever on a prompt nobody can answer — the session that
 triggered this is already gone.
 

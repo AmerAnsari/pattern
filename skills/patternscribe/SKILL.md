@@ -50,6 +50,10 @@ bash "$PLUGIN_LIB/bootstrap.sh"               # create them if missing (idempote
 
 ## Before you edit the profile
 
+This section applies to the commands below, which run in a live session. It does not
+apply to the background distiller: that runs with a deliberately minimal tool set and
+cannot invoke a skill at all, so it always follows the inlined checklist.
+
 If `use_superpowers` is true and the superpowers skills are available, invoke
 `superpowers:writing-skills` before rewriting `PATTERNS.md`, and
 `superpowers:verification-before-completion` before reporting done.

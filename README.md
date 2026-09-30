@@ -208,7 +208,7 @@ shipped defaults.
 ```jsonc
 {
   "enabled": true,
-  "use_superpowers": true,      // use the superpowers skills when they're installed
+  "use_superpowers": true,      // live /patternscribe commands only; see note below
   "data_dir": ".patternscribe",       // move the profile elsewhere if you'd rather
   "budget_usd": 0.50,           // hard cap per background run
   "min_signal": 1,              // raise to only analyse eventful sessions
@@ -222,6 +222,20 @@ shipped defaults.
   }
 }
 ```
+
+### Superpowers
+
+`use_superpowers` applies to the **live** `/patternscribe` commands. When the
+[Superpowers](https://github.com/obra/superpowers) plugin is installed and enabled, they
+use its skill-writing and verification skills before touching your profile.
+
+The **background distiller does not use it**, whatever this is set to. It runs with a
+minimal tool set — read, write, edit, glob, grep — and no ability to invoke a skill, which
+is deliberate: the less that unattended run can reach, the better. It follows the same
+discipline written out inline in `SKILL.md` instead.
+
+So with Superpowers disabled or absent, nothing breaks and nothing is missing from the
+automatic capture. `claude plugin list` tells you whether it is enabled.
 
 ### The model
 

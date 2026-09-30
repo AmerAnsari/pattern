@@ -1,5 +1,6 @@
 {
   "enabled": true,
+  "_use_superpowers": "Applies to the live /patternscribe commands only. The background distiller runs without the Skill tool and always uses the checklist inlined in SKILL.md.",
   "use_superpowers": true,
   "data_dir": ".patternscribe",
   "budget_usd": 0.5,
