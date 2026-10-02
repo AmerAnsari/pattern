@@ -53,7 +53,7 @@ runner = conf.get("runner", {})
 patterns = data / "PATTERNS.md"
 
 # Conventions the project already states out loud; the profile must not echo them.
-known = [n for n in ("CLAUDE.md", "AGENTS.md", "GEMINI.md", ".cursorrules") if (root / n).is_file()]
+known = [n for n in ("CLAUDE.md", "AGENTS.md") if (root / n).is_file()]
 known += [str(p.relative_to(root)) for p in sorted(root.glob(".claude/skills/*/SKILL.md"))]
 context = ", ".join(f"`{n}`" for n in known) if known else "(none in this project)"
 

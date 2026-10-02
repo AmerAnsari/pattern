@@ -1,12 +1,10 @@
-"""Host adapter interface.
+"""Transcript adapter interface.
 
-Only *automatic* session-end capture needs to understand a host's transcript
-format. Everything else in this plugin (the skill, the commands) works on any
-host, because the live agent can reflect on the conversation it is already in.
+Only *automatic* session-end capture needs to understand the transcript format.
+The skill and the commands work without it, because the live agent can reflect
+on the conversation it is already in.
 
-To support a new host, add a module next to this one exposing the same four
-functions and register it in `registry` below. A host with no adapter loses
-only the unattended capture; `/patternscribe doctor` reports that plainly.
+Claude Code is the only supported host; `claude.py` is the only adapter.
 
 An adapter normalises transcript records into this shape:
 

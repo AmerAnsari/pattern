@@ -60,38 +60,27 @@ is a hypothesis; five is a rule. The highest counts are injected first.
 
 ## Install
 
+Patternscribe is a Claude Code plugin. Install it into one project at a time:
+
 ```bash
+cd your-project
 claude plugin marketplace add ameransari/patternscribe
-claude plugin install patternscribe@ameransari
+claude plugin install patternscribe@ameransari --scope local
 ```
 
 Restart your session. That is the entire setup — the hooks ship with the plugin, so
 there is no config file to edit and nothing to add to your settings.
 
-<details>
-<summary>Other hosts</summary>
+**Why `--scope local`.** It enables the plugin for you, in this project only, recorded in
+`.claude/settings.local.json`, which stays out of git. The hooks then run only in sessions
+started here. Every other directory on your machine is left alone, and nobody else on
+the project gets it unless they install it too.
 
-**Cursor** — add the repo as a plugin source; it loads `.cursor-plugin/plugin.json`.
-
-**Codex** — add the repo as a plugin source; it loads `.codex-plugin/plugin.json`.
-
-**Gemini CLI** — `gemini extensions install https://github.com/ameransari/patternscribe`.
-
-</details>
-
-### What works where
-
-| Host | `/patternscribe` commands | Profile injected at start | Automatic capture at exit |
-|---|---|---|---|
-| Claude Code | yes | yes | **yes** |
-| Cursor | yes | yes | no — run `/patternscribe` |
-| Codex | yes | no | no — run `/patternscribe` |
-| Gemini CLI | yes | no | no — run `/patternscribe` |
-
-Automatic capture needs a session-end hook *and* a readable transcript. Only Claude Code
-provides both today. Everywhere else the same learning happens when you run `/patternscribe`,
-because the agent can reflect on the conversation it is already in — it just isn't
-unattended. `/patternscribe doctor` tells you which case you are in.
+Repeat the install in each project you want it in. If you do want it everywhere, use
+`--scope user` instead. That runs the hooks in every Claude Code session, and any
+session that ends in a directory with no profile yet creates a `.patternscribe/` there
+(in your home directory too). To share it with a team instead, `--scope project` records
+it in the committed `.claude/settings.json`.
 
 Requires Python 3.8+ and bash. Both are already there on macOS and Linux; on Windows the
 hooks use Git Bash if it is installed and skip quietly if not.
@@ -107,7 +96,7 @@ hooks use Git Bash if it is installed and skip quietly if not.
 | `/patternscribe why <rule>` | Shows the dated evidence behind a rule |
 | `/patternscribe forget <rule>` | Removes a rule and stops it being re-learned |
 | `/patternscribe config` | Model, runner, data location, superpowers toggle |
-| `/patternscribe doctor` | Diagnoses hooks, host support, model, queue |
+| `/patternscribe doctor` | Diagnoses hooks, transcripts, model, queue |
 
 `/patternscribe suggest` always learns before it advises. An opinion that ignores the
 correction you gave ten minutes ago is worse than no opinion, because it sounds
@@ -255,18 +244,13 @@ Set it and capture resumes:
 { "runner": { "model": "sonnet" } }
 ```
 
-### A different CLI entirely
-
-The background runner is just a command. Any CLI that takes a prompt works, including
-ones that can't edit files — they print the new profile and the plugin writes it.
-See [`skills/patternscribe/references/runners.md`](skills/patternscribe/references/runners.md) for
-worked examples.
-
 ## Uninstall
 
 ```bash
-claude plugin uninstall patternscribe
+claude plugin uninstall patternscribe --scope local
 ```
+
+Use the scope you installed with.
 
 Then `rm -rf .patternscribe/` in any project you want to forget. That's all of it — nothing is
 installed outside the plugin directory and the projects you used it in.

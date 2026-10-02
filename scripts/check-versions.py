@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the version number that lives in five manifests at once.
+"""Guard the version number that lives in both manifests at once.
 
 Two rules:
 
@@ -8,7 +8,7 @@ Two rules:
    installing another, and nothing at install time complains.
 
 2. **Only a release PR may change it.** Ordinary PRs leave the version alone, so
-   a month of merges doesn't fight over the same five lines. A PR that does move
+   a month of merges doesn't fight over the same lines. A PR that does move
    it must be titled `Release <version>`, and that version must match the files.
 
 Run it locally before pushing:
@@ -118,7 +118,7 @@ def main() -> int:
                 problems.append("")
                 problems.append("  Ordinary PRs leave the version alone — it moves once per")
                 problems.append("  release, so a month of merges doesn't fight over the same")
-                problems.append("  five lines.")
+                problems.append("  lines.")
                 problems.append("")
                 problems.append("  Either revert the version change, or retitle the PR:")
                 problems.append(f"      Release {current}")

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Read a hook's JSON payload on stdin and print the requested fields.
 
-Hooks receive JSON and are written in shell, and every host spells the fields
-slightly differently. Doing the parsing here keeps the hook scripts readable and
+Hooks receive JSON and are written in shell, and the payload's fields can be
+missing or oddly typed. Doing the parsing here keeps the hook scripts readable and
 means a malformed payload yields empty values rather than a crash during
 someone's session exit.
 

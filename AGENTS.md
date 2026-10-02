@@ -5,19 +5,18 @@ Notes for anyone — human or agent — changing this repo.
 ## What this is
 
 A plugin that reads finished agent sessions and maintains a per-project profile of how
-its owner wants work done. Packaged for several hosts from one source tree.
+its owner wants work done. Claude Code only.
 
 ## Layout
 
 ```
-.claude-plugin/ .cursor-plugin/ .codex-plugin/   per-host manifests
-gemini-extension.json  GEMINI.md                 Gemini CLI
-skills/patternscribe/                            the skill the live agent follows
-commands/patternscribe.md                        the /patternscribe slash command
-hooks/                                           session-start / session-end, + manifests
-lib/                                             extraction, config, the distiller
-prompts/distill.md                               what the background model is told
-config.default.json                              shipped defaults
+.claude-plugin/              plugin and marketplace manifests
+skills/patternscribe/        the skill the live agent follows
+commands/patternscribe.md    the /patternscribe slash command
+hooks/                       session-start / session-end, + hooks.json
+lib/                         extraction, config, the distiller
+prompts/distill.md           what the background model is told
+config.default.json          shipped defaults
 ```
 
 ## Rules that are not negotiable
@@ -70,7 +69,7 @@ session is worth a model call. Any new capture path needs the same gate.
 
 ## Versioning
 
-Five manifests carry the version. Never edit them by hand:
+Two manifests carry the version. Never edit them by hand:
 
 ```bash
 scripts/bump-version.sh 0.2.0
@@ -100,12 +99,12 @@ against two *different* real transcripts that share a preference, and check the 
 rule reaches `(seen 2x)` without a near-duplicate appearing. That is the behaviour the
 whole thing rests on.
 
-## Adding a host
+## Claude Code only
 
-See `skills/patternscribe/references/host-tools.md`. Implement the four functions in
-`lib/hosts/base.py`, register the name, add a manifest. Automatic capture needs a
-session-end hook and a readable transcript; without them the host still gets the skill
-and the `/patternscribe` commands, which is most of the value.
+Support for Cursor, Codex and Gemini CLI was removed before the first release. Don't add
+another host's manifest back: every host is another place the privacy rules above have
+to hold, and only Claude Code gives the plugin both a session-end hook and a transcript
+it can read.
 
 ## Credits
 

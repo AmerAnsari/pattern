@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
-import os
 import re
 import sys
 from collections import Counter
@@ -249,9 +248,9 @@ class Digest:
 
 
 def build(transcript: Path, redact_globs, project_root=None) -> Digest:
-    adapter = host_base.load(os.environ.get("PATTERNSCRIBE_HOST", "claude"))
+    adapter = host_base.load("claude")
     if adapter is None:
-        raise SystemExit("pattern: no host adapter available for this environment")
+        raise SystemExit("patternscribe: Claude Code transcript adapter unavailable")
     digest = Digest(redact_globs, project_root)
     digest.feed(adapter.iter_events(transcript))
     return digest

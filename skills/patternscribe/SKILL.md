@@ -58,8 +58,8 @@ If `use_superpowers` is true and the superpowers skills are available, invoke
 `superpowers:writing-skills` before rewriting `PATTERNS.md`, and
 `superpowers:verification-before-completion` before reporting done.
 
-If it is true but superpowers is not installed here, mention how to install it for this
-host — once per session, not every time.
+If it is true but superpowers is not installed here, mention how to install it — once
+per session, not every time.
 
 If it is false, or superpowers is not available, follow this instead. It is the same
 discipline, inlined so this plugin stands alone:
@@ -155,8 +155,9 @@ before changing the `runner` block.
 Report, in this order, stopping at the first thing that is broken:
 
 - config resolution and data dir — `python3 "$PLUGIN_LIB/config.py" show`
-- whether the host has a transcript adapter (automatic capture needs one; the manual
-  commands do not)
+- whether this project's transcripts are where the adapter looks —
+  `~/.claude/projects/<slugified project path>/` (automatic capture needs them; the
+  manual commands do not)
 - resolved model — `python3 "$PLUGIN_LIB/config.py" resolve-model`, and whether
   `state/needs-config` exists
 - last run — `tail -20 <data_dir>/state/distill.log`
@@ -212,4 +213,3 @@ digraph pattern {
   and the merge rules. Read before any edit to `PATTERNS.md`.
 - `references/runners.md` — pointing the background distiller at a different CLI or a
   different model.
-- `references/host-tools.md` — tool-name differences across hosts.

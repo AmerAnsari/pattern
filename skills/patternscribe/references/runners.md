@@ -1,7 +1,7 @@
 # Runners
 
-The background distiller shells out to a CLI. Which one is configuration, so this plugin
-is not tied to any particular model or vendor.
+The background distiller shells out to the `claude` CLI. The model, flags and budget it
+is run with are configuration.
 
 Everything here goes in the `runner` block of `<project>/.patternscribe/config.json`. Only the
 keys you change need to be present.
@@ -13,8 +13,8 @@ are two ways it can do that:
 
 | `writes_files` | The runner… | Used when |
 |---|---|---|
-| `true` (default) | has file tools, reads and edits `PATTERNS.md` itself | Claude Code, Codex, any agentic CLI |
-| `false` | only talks: it prints the complete new profile on stdout and the plugin writes it | a plain completion CLI with no file access |
+| `true` (default) | has file tools, reads and edits `PATTERNS.md` itself | always, in normal use |
+| `false` | only talks: it prints the complete new profile on stdout and the plugin writes it | testing the pipeline without spending (point `command` at a script that prints) |
 
 In `false` mode the plugin appends the current profile and the session digest to the
 prompt, and asks for the whole file back. It refuses output that does not start with
@@ -42,7 +42,7 @@ nothing: `PATH`, `HOME`, locale, proxy and certificate settings, plus this plugi
 own config file or the system keychain, both reachable through `HOME`. That is how the
 default `claude` runner works, and it needs no configuration.
 
-A runner that authenticates from an environment variable instead needs you to name it:
+If you authenticate `claude` from an environment variable instead, name it:
 
 ```jsonc
 { "runner": { "pass_env": ["YOUR_RUNNERS_KEY_VARIABLE"] } }
@@ -103,39 +103,6 @@ triggered this is already gone.
 ```
 
 Setting `model` explicitly skips the availability probe entirely.
-
-## Another agentic CLI
-
-Any CLI that takes a prompt and can edit files works. Match its own flags:
-
-```jsonc
-{
-  "runner": {
-    "command": "/usr/local/bin/some-agent",
-    "model": "its-model-name",
-    "prompt": "file",
-    "writes_files": true,
-    "args": ["run", "--model", "{model}", "--allow-write", "{data_dir}",
-             "--prompt-file", "{prompt_file}"]
-  }
-}
-```
-
-## A completion-only CLI
-
-```jsonc
-{
-  "runner": {
-    "command": "llm",
-    "model": "gpt-4o",
-    "prompt": "stdin",
-    "writes_files": false,
-    "args": ["-m", "{model}"]
-  }
-}
-```
-
-The plugin writes whatever it prints, after checking it looks like a profile.
 
 ## Turning the background runner off
 
