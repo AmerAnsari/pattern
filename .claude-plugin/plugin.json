@@ -2,11 +2,12 @@
   "name": "patternscribe",
   "displayName": "Patternscribe",
   "version": "0.1.0",
-  "description": "Learns how you work from every session — corrections, rejected actions, mistakes — and applies it to the next one.",
+  "description": "Turns the corrections you give Claude into a per-project profile it follows next time.",
   "author": {
     "name": "Amer Ansari"
   },
   "homepage": "https://github.com/ameransari/patternscribe",
+  "privacyPolicyUrl": "https://github.com/AmerAnsari/patternscribe#privacy",
   "repository": "https://github.com/ameransari/patternscribe",
   "license": "MIT",
   "keywords": [

@@ -4,105 +4,88 @@ Notes for anyone — human or agent — changing this repo.
 
 ## What this is
 
-A plugin that reads finished agent sessions and maintains a per-project profile of how
-its owner wants work done. Packaged for several hosts from one source tree.
+A Claude Code plugin that distils a session's corrections into a per-project profile of
+how its owner wants work done — when Claude notices a correction, or when asked.
 
 ## Layout
 
 ```
-.claude-plugin/ .cursor-plugin/ .codex-plugin/   per-host manifests
-gemini-extension.json  GEMINI.md                 Gemini CLI
-skills/patternscribe/                            the skill the live agent follows
-commands/patternscribe.md                        the /patternscribe slash command
-hooks/                                           session-start / session-end, + manifests
-lib/                                             extraction, config, the distiller
-prompts/distill.md                               what the background model is told
-config.default.json                              shipped defaults
+.claude-plugin/              plugin and marketplace manifests
+skills/patternscribe/        the /patternscribe skill, and the profile format it follows
+scripts/                     config resolution and bootstrap, plus the version tooling
+config.default.json          shipped defaults
 ```
 
 ## Rules that are not negotiable
 
-**Nothing leaves the project.** No telemetry, no network calls beyond the runner the
-user configured. Data is per project; there is no user-global store and adding one is
-not an enhancement.
+**It runs inside a live session, never behind one.** No hooks, no background process,
+no scheduled run. Claude may invoke the skill when it sees a correction; that path checks
+`auto_capture` and stops when it is `false`, and it only ever captures. An explicit ask
+always runs.
 
-**No third-party dependencies.** `lib/` is Python standard library only and the hooks
-are bash. This installs into other people's repos; it does not get to bring a
-dependency tree with it.
+**Nothing leaves the project.** No telemetry, no network calls, no second model call.
+Data is per project; there is no user-global store and adding one is not an enhancement.
 
-**Digests never carry payload.** The extractor emits tool *names and summarised
-arguments*, never tool output or file contents. `lib/hosts/base.py::SAFE_ARG_KEYS` is an
-allowlist for exactly this reason — a new tool's arguments are dropped by default rather
-than leaked by default. If you widen it, say why in the commit.
+**No third-party dependencies.** `scripts/` is Python standard library only, plus bash. This
+installs into other people's repos; it does not get to bring a dependency tree with it.
 
-**Hooks never break a session.** Every path in `hooks/session-end` and
-`hooks/session-start` exits 0. A hook that fails loudly on someone's exit is worse than
-one that silently does nothing.
-
-**Sessions are counted once.** `state/analyzed` is the ledger and the session-end hook
-checks it. Confidence counts are the only signal the profile has; re-analysing a session
-to "double-check" corrupts them.
-
-**Never spend without a gate.** `extract.py --score` runs locally and decides whether a
-session is worth a model call. Any new capture path needs the same gate.
+**Sessions are counted once.** `journal.md` heads every block with the session id, which
+the skill gets from `${CLAUDE_SESSION_ID}`, and that is the ledger. Auto-capture can run
+several times in one session; confidence counts are the only signal the profile has, and
+counting that session more than once corrupts them.
 
 ## Things that will bite you
 
-- **`--add-dir` is variadic.** Passing the prompt as a trailing argument gets it eaten as
-  a directory. The default runner uses stdin; leave it that way.
-- **A distill run is itself a session.** Everything it spawns sets `PATTERNSCRIBE_DISTILL=1`
-  and both hooks return immediately when they see it. Without that it analyses its own
-  exit for ever.
-- **`--max-budget-usd` too low reads as failure.** A budget-exceeded error means the
-  model *answered*; `config.py` treats it as a successful probe. Don't "fix" that.
-- **`setsid` is Linux-only.** macOS and BSD take the `nohup` branch.
-- **Hook scripts are extensionless on purpose.** Claude Code's Windows detection
-  prepends `bash` to any command containing `.sh`, which would double-invoke them.
-- **Host-injected text arrives in the user role.** Task notifications, interruption
-  notices and canned rejection blurbs are filtered by `SYNTHETIC` and
-  `SYNTHETIC_FEEDBACK` in `extract.py`. Without those you learn rules about the harness
-  talking to itself.
+- **`privacyPolicyUrl` warns in `claude plugin validate`.** The directory portal asks
+  for it in `plugin.json`; Claude Code does not know the field and reports it as an
+  unknown top-level key that it strips at load time. Both are right, and the field is
+  harmless — it exists for the directory. Do not "fix" the warning by removing it, and
+  do not run `claude plugin validate --strict` in CI expecting a clean pass.
+- **Install scope is the user's choice, not the plugin's.** Claude Code defaults to user
+  scope and has no manifest field to change that. The README's install command passes
+  `--scope local`; keep it that way.
+
+## Branches and releases
+
+- **`main`** is the default branch. Every PR targets it and is squash-merged.
+- **`release`** is what users get. The plugin directory tracks it, and the README's
+  install command pins it (`ameransari/patternscribe#release`), so directory and manual
+  installs are always on the same version. Nothing reaches users until it is released.
+
+To release:
+
+1. On a branch off `main`, run `scripts/bump-version.sh 0.3.0`, open a PR into `main`
+   titled exactly `Release 0.3.0`, and merge it.
+2. Open a PR from `main` into `release`, titled `Release 0.3.0` too, and merge it with
+   **Create a merge commit** — never squash or rebase. Squashing rewrites the commits, so
+   `release` stops sharing history with `main` and the next release PR conflicts.
+
+CI enforces the rest: a PR into `release` must come from `main`, and only a PR titled
+`Release <version>` may change the version. There are no tags; the merge commits on
+`release` are the release history.
 
 ## Versioning
 
-Five manifests carry the version. Never edit them by hand:
+Two manifests carry the version. Never edit them by hand:
 
 ```bash
-scripts/bump-version.sh 0.2.0
+scripts/bump-version.sh 0.3.0
 ```
 
 It writes every file listed in `.version-bump.json` and fails if anything is left stale.
 
 ## Testing a change
 
-No test framework — this is shell and stdlib Python against real transcripts.
+No test framework — this is shell and stdlib Python.
 
 ```bash
-# extraction, free
-python3 lib/extract.py <a real transcript>.jsonl --score
-python3 lib/extract.py <a real transcript>.jsonl --cwd <project>
-
-# the hooks, free
-echo '{"cwd":"<project>","session_id":"x","transcript_path":"..."}' | bash hooks/session-end
-echo '{"cwd":"<project>"}' | bash hooks/session-start
-
-# the distiller without spending: a runner that only prints
-# see skills/patternscribe/references/runners.md, writes_files:false
+claude plugin validate .
+python3 scripts/config.py show
+claude --plugin-dir . # correct it in a session; check it captures, and doesn't with
+                      # "auto_capture": false unless you ask
 ```
 
-Before shipping a change to the prompt or the merge rules, run the distiller twice
-against two *different* real transcripts that share a preference, and check the shared
-rule reaches `(seen 2x)` without a near-duplicate appearing. That is the behaviour the
-whole thing rests on.
-
-## Adding a host
-
-See `skills/patternscribe/references/host-tools.md`. Implement the four functions in
-`lib/hosts/base.py`, register the name, add a manifest. Automatic capture needs a
-session-end hook and a readable transcript; without them the host still gets the skill
-and the `/patternscribe` commands, which is most of the value.
-
-## Credits
-
-The polyglot `hooks/run-hook.cmd` wrapper technique is from
-[Superpowers](https://github.com/obra/superpowers) (MIT).
+Before shipping a change to the skill or the merge rules, capture in two
+*different* sessions that share a preference, and check the shared rule reaches
+`(seen 2x)` without a near-duplicate appearing. Then capture a second time in the second
+session and check the count stays at 2. That is the behaviour the whole thing rests on.

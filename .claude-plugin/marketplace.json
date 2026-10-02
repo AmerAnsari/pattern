@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "patternscribe",
-      "description": "Learns how you work from every session — corrections, rejected actions, mistakes — and applies it to the next one.",
+      "description": "Turns the corrections you give Claude into a per-project profile it follows next time.",
       "version": "0.1.0",
       "source": "./",
       "author": {
