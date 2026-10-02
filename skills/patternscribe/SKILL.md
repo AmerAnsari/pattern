@@ -15,7 +15,13 @@ Subcommand: `$ARGUMENTS`
   config says. Map their words to a subcommand below; "remember that" is **capture**.
 - **You started it on your own** because the user corrected you, refused an action, or
   restated a preference. First run `python3 "$PLUGIN_LIB/config.py" get auto_capture`.
-  If it prints `false`, stop here, say nothing about it, and carry on with the task.
+  If it prints `false`, save nothing, and end your reply with this line so the user
+  can keep it if they want to:
+
+  > Not saved for future sessions — run `/patternscribe` to keep this one.
+
+  Then carry on with the task. Do not say you will remember it, avoid it "from now on",
+  or anything else implying it outlasts this session — with nothing saved, it won't.
   Otherwise do **capture** only, report it in one line, and go straight back to the
   work you were doing. Never start **lead**, **suggest** or **forget** on your own.
 

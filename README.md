@@ -101,11 +101,16 @@ With `auto_capture` on (the default), Claude notices when you correct it, refuse
 action or restate a preference, records it, says so in one line, and carries on. It only
 ever captures on its own; it never starts `lead`, `suggest` or `forget` unless you ask.
 
-Turn it off per project and patternscribe runs only when you ask:
+Turn it off per project and patternscribe saves only when you ask:
 
 ```json
 { "auto_capture": false }
 ```
+
+When it is off, Claude still notices a correction. It saves nothing, but ends its reply
+with a reminder so you can keep it:
+
+> Not saved for future sessions — run `/patternscribe` to keep this one.
 
 `/patternscribe suggest` always learns before it advises. An opinion that ignores the
 correction you gave ten minutes ago is worse than no opinion, because it sounds
