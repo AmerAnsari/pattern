@@ -1,13 +1,23 @@
 ---
 name: patternscribe
-description: Learn from this session, then show what you've learned or give your point of view
+description: Use when the user corrects you, refuses an action, or restates how they want something done — to record the preference so later sessions stop repeating the mistake. Also use when the user asks to run patternscribe, to remember or record a preference, what you have learned about how they work, how they would have done something, or wants your point of view grounded in their past corrections.
 argument-hint: "[suggest | lead | show | why <rule> | forget <rule> | config]"
-disable-model-invocation: true
 ---
 
 # Patternscribe
 
 Subcommand: `$ARGUMENTS`
+
+## Who started this run
+
+- **The user asked** — they typed `/patternscribe`, or told you in their own words to run
+  it, remember something, show the profile, and so on. Always do it, whatever the
+  config says. Map their words to a subcommand below; "remember that" is **capture**.
+- **You started it on your own** because the user corrected you, refused an action, or
+  restated a preference. First run `python3 "$PLUGIN_LIB/config.py" get auto_capture`.
+  If it prints `false`, stop here, say nothing about it, and carry on with the task.
+  Otherwise do **capture** only, report it in one line, and go straight back to the
+  work you were doing. Never start **lead**, **suggest** or **forget** on your own.
 
 Dispatch:
 
@@ -30,9 +40,9 @@ corrected in past sessions. The profile lives at `<data_dir>/PATTERNS.md`, the e
 behind it at `<data_dir>/journal.md`, and `<data_dir>` is `.patternscribe/` unless the config
 says otherwise.
 
-Nothing here runs on its own. There are no hooks and no background process: the profile
-changes only when the user types `/patternscribe`, and this skill cannot be triggered by
-anything else. Do the subcommand asked for, then stop.
+There are no hooks and no background process. The profile changes only inside a live
+session: when the user asks, or — unless `auto_capture` is `false` — when you notice a
+correction and capture it yourself.
 
 **Core principle:** learn before you advise. An opinion that ignores the correction the
 user gave two minutes ago is worse than no opinion, because it sounds informed.

@@ -66,6 +66,7 @@ def main() -> int:
     if not args or args[0] == "show":
         print(f"project root : {root}")
         print(f"data dir     : {data_dir(config, root)}")
+        print(f"auto capture : {config.get('auto_capture')}")
         print(f"superpowers  : {config.get('use_superpowers')}")
         print(f"decay after  : {config.get('decay_sessions')} sessions")
         return 0

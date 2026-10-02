@@ -17,6 +17,7 @@ if [ ! -f "$DATA/config.json" ]; then
   cat > "$DATA/config.json" <<'JSON'
 {
   "_comment": "Overrides for patternscribe. Anything you leave out keeps its default; run `/patternscribe config` to see the merged result.",
+  "auto_capture": true,
   "use_superpowers": true
 }
 JSON

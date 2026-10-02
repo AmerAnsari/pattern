@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "patternscribe",
-      "description": "Turns the corrections you give Claude into a per-project profile it can follow — only when you run /patternscribe.",
+      "description": "Turns the corrections you give Claude into a per-project profile it follows next time.",
       "version": "0.1.0",
       "source": "./",
       "author": {

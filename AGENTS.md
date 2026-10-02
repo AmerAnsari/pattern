@@ -4,8 +4,8 @@ Notes for anyone — human or agent — changing this repo.
 
 ## What this is
 
-A Claude Code plugin that, when its owner runs `/patternscribe`, distils the current
-session into a per-project profile of how they want work done.
+A Claude Code plugin that distils a session's corrections into a per-project profile of
+how its owner wants work done — when Claude notices a correction, or when asked.
 
 ## Layout
 
@@ -18,11 +18,10 @@ config.default.json          shipped defaults
 
 ## Rules that are not negotiable
 
-**It runs only when the user types `/patternscribe`.** No hooks, no background process,
-no scheduled run. The skill sets `disable-model-invocation: true`, so Claude cannot
-trigger it on its own either. Don't add an automatic path back: running unasked in every
-session is what installing at user scope used to mean, and that is exactly what this
-removed.
+**It runs inside a live session, never behind one.** No hooks, no background process,
+no scheduled run. Claude may invoke the skill when it sees a correction; that path checks
+`auto_capture` and stops when it is `false`, and it only ever captures. An explicit ask
+always runs. Don't add a hook or background path back.
 
 **Nothing leaves the project.** No telemetry, no network calls, no second model call.
 Data is per project; there is no user-global store and adding one is not an enhancement.
@@ -31,9 +30,9 @@ Data is per project; there is no user-global store and adding one is not an enha
 installs into other people's repos; it does not get to bring a dependency tree with it.
 
 **Sessions are counted once.** `journal.md` heads every block with the session id, which
-the skill gets from `${CLAUDE_SESSION_ID}`, and that is the ledger. Confidence counts are
-the only signal the profile has; counting a session twice because `/patternscribe` ran
-twice in it corrupts them.
+the skill gets from `${CLAUDE_SESSION_ID}`, and that is the ledger. Auto-capture can run
+several times in one session; confidence counts are the only signal the profile has, and
+counting that session more than once corrupts them.
 
 ## Things that will bite you
 
@@ -64,12 +63,13 @@ No test framework — this is shell and stdlib Python.
 claude plugin validate .
 python3 lib/config.py show
 bash lib/bootstrap.sh <a scratch project>
-claude --plugin-dir . # then /patternscribe in a session with a correction in it
+claude --plugin-dir . # correct it in a session; check it captures, and doesn't with
+                      # "auto_capture": false unless you ask
 ```
 
-Before shipping a change to the skill or the merge rules, run `/patternscribe` in two
+Before shipping a change to the skill or the merge rules, capture in two
 *different* sessions that share a preference, and check the shared rule reaches
-`(seen 2x)` without a near-duplicate appearing. Then run it a second time in the second
+`(seen 2x)` without a near-duplicate appearing. Then capture a second time in the second
 session and check the count stays at 2. That is the behaviour the whole thing rests on.
 
 ## Claude Code only

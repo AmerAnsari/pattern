@@ -2,13 +2,14 @@
 
 **Your agent forgets every correction you give it. This makes them stick.**
 
-Run `/patternscribe` at the end of a session and it works out what your corrections say
-about how you want work done, then writes those conclusions to a file in your project.
-Ask it for its opinion with `/patternscribe suggest`, or let it run with what it has
-learned using `/patternscribe lead`.
+When you correct Claude, patternscribe works out what the correction says about how you
+want work done, and writes it to a file in your project. Ask it for its opinion with
+`/patternscribe suggest`, or let it run with what it has learned using
+`/patternscribe lead`.
 
-It only ever runs when you type it. There are no hooks, nothing runs in the background,
-and Claude cannot invoke it on its own.
+It runs inside your session, never behind it. There are no hooks and nothing runs in the
+background. Claude captures a correction as it happens, or you ask it to — and
+`"auto_capture": false` leaves it to you alone.
 
 ## The problem
 
@@ -22,7 +23,7 @@ Tomorrow it does exactly the same thing, and you type the same sentence again.
 ```
 you correct the agent during a session
    |
-   v  /patternscribe
+   v  Claude runs patternscribe  (or you do: /patternscribe, "remember that")
    |- reads the profile, merges in what this session proved
    v
 <project>/.patternscribe/PATTERNS.md
@@ -52,8 +53,8 @@ hand:
 ```
 
 `(seen Nx)` counts how many separate sessions the preference showed up in. One sighting
-is a hypothesis; five is a rule. Running `/patternscribe` twice in one session still
-counts that session once.
+is a hypothesis; five is a rule. Capturing twice in one session still counts that
+session once.
 
 ## Install
 
@@ -73,9 +74,9 @@ this repo only (local scope)**.
 it unless they install it too. Claude Code's own default is user scope, and a plugin
 cannot change that, so pass `--scope local` yourself.
 
-If you install at user scope anyway, nothing happens in other directories until you
-type `/patternscribe` there. The plugin has no hooks, so it never writes anything you
-did not ask for.
+If you install at user scope anyway, it is available in every project, and the first
+correction Claude captures in a directory creates `.patternscribe/` there. Set
+`"auto_capture": false` if you would rather that only happen when you ask.
 
 Requires Python 3.8+ and bash.
 
@@ -83,13 +84,28 @@ Requires Python 3.8+ and bash.
 
 | Command | What it does |
 |---|---|
-| `/patternscribe` | Records what this session taught, right now — use it after you correct something |
+| `/patternscribe` | Records what this session taught, right now |
 | `/patternscribe suggest` | Learns from this session, then tells you how *you* would have done it and where the current approach diverges |
 | `/patternscribe lead` | Learns, then carries on with the work under your profile |
 | `/patternscribe show` | Prints the profile |
 | `/patternscribe why <rule>` | Shows the dated evidence behind a rule |
 | `/patternscribe forget <rule>` | Removes a rule and stops it being re-learned |
-| `/patternscribe config` | Data location, superpowers toggle |
+| `/patternscribe config` | Auto-capture, data location, superpowers toggle |
+
+You don't have to use the slash form. "Run patternscribe", "remember that", or "what
+have you learned about how I work?" work too.
+
+### Automatic capture
+
+With `auto_capture` on (the default), Claude notices when you correct it, refuse an
+action or restate a preference, records it, says so in one line, and carries on. It only
+ever captures on its own; it never starts `lead`, `suggest` or `forget` unless you ask.
+
+Turn it off per project and patternscribe runs only when you ask:
+
+```json
+{ "auto_capture": false }
+```
 
 `/patternscribe suggest` always learns before it advises. An opinion that ignores the
 correction you gave ten minutes ago is worse than no opinion, because it sounds
@@ -109,7 +125,7 @@ That is your choice to make, and removing the line undoes it.
 
 ## What appears in your repo
 
-The first `/patternscribe` in a project creates one directory:
+The first capture in a project creates one directory:
 
 ```
 <your project>/.patternscribe/
@@ -126,7 +142,7 @@ nothing is written outside the project.
 
 ### Editing it by hand
 
-It is a markdown file; edit it. Mark a bullet `(pinned)` and `/patternscribe` will never
+It is a markdown file; edit it. Mark a bullet `(pinned)` and patternscribe will never
 reword, recount or archive it:
 
 ```markdown
@@ -135,9 +151,9 @@ reword, recount or archive it:
 
 ## What it costs
 
-Nothing beyond the session you are already in. `/patternscribe` runs as part of that
-session, on its model, the moment you type it. There is no second model call and no
-separate process.
+No separate bill. Patternscribe runs as part of the session you are already in, on its
+model. There is no second model call and no separate process. A capture does use some of
+that session's context and tokens; turn `auto_capture` off if you want to choose when.
 
 ## Privacy
 
@@ -147,7 +163,7 @@ Permanent link to this section: [Privacy](https://github.com/AmerAnsari/patterns
   own, and makes no network calls. It runs inside your Claude Code session, which talks
   to the model the way it always does.
 - Nothing is written outside the project directory, and nothing is written at all until
-  you type `/patternscribe`.
+  the first capture.
 - The profile records how you work, never what you worked on. Secrets, code, file
   contents, personal data and one-off task facts are out of scope by design.
 - `journal.md` quotes what you said, so you can see the evidence behind a rule. If you
@@ -161,6 +177,7 @@ shipped defaults.
 
 ```jsonc
 {
+  "auto_capture": true,         // capture corrections without being asked
   "use_superpowers": true,      // see below
   "data_dir": ".patternscribe", // move the profile elsewhere if you'd rather
   "decay_sessions": 10          // rules unreinforced this long move to Archive
@@ -170,7 +187,7 @@ shipped defaults.
 ### Superpowers
 
 When the [Superpowers](https://github.com/obra/superpowers) plugin is installed and
-enabled, `/patternscribe` uses its skill-writing and verification skills before touching
+enabled, patternscribe uses its skill-writing and verification skills before touching
 your profile. Without it, nothing breaks: the same discipline is written out inline in
 `SKILL.md`. `claude plugin list` tells you whether it is enabled.
 
