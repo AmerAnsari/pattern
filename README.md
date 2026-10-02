@@ -73,7 +73,7 @@ Patternscribe is a Claude Code plugin. Install it into one project at a time:
 
 ```bash
 cd your-project
-claude plugin marketplace add ameransari/patternscribe
+claude plugin marketplace add ameransari/patternscribe#release
 claude plugin install patternscribe@ameransari --scope local
 ```
 

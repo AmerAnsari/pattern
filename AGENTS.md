@@ -45,12 +45,31 @@ counting that session more than once corrupts them.
   scope and has no manifest field to change that. The README's install command passes
   `--scope local`; keep it that way.
 
+## Branches and releases
+
+- **`main`** is the default branch. Every PR targets it and is squash-merged.
+- **`release`** is what users get. The plugin directory tracks it, and the README's
+  install command pins it (`ameransari/patternscribe#release`), so directory and manual
+  installs are always on the same version. Nothing reaches users until it is released.
+
+To release:
+
+1. On a branch off `main`, run `scripts/bump-version.sh 0.3.0`, open a PR into `main`
+   titled exactly `Release 0.3.0`, and merge it.
+2. Open a PR from `main` into `release`, titled `Release 0.3.0` too, and merge it with
+   **Create a merge commit** — never squash or rebase. Squashing rewrites the commits, so
+   `release` stops sharing history with `main` and the next release PR conflicts.
+
+CI enforces the rest: a PR into `release` must come from `main`, and only a PR titled
+`Release <version>` may change the version. There are no tags; the merge commits on
+`release` are the release history.
+
 ## Versioning
 
 Two manifests carry the version. Never edit them by hand:
 
 ```bash
-scripts/bump-version.sh 0.2.0
+scripts/bump-version.sh 0.3.0
 ```
 
 It writes every file listed in `.version-bump.json` and fails if anything is left stale.

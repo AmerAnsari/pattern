@@ -9,6 +9,24 @@ permissions:
   contents: read
 
 jobs:
+  release-source:
+    # `release` is what users install. It only ever moves to a commit on `main`.
+    if: github.base_ref == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check this PR comes from main
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REF" != "main" ] || [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "✘ PRs into release must come from this repo's main, not $HEAD_REPO:$HEAD_REF."
+            echo "  Merge your change into main first, then open a Release PR from main."
+            exit 1
+          fi
+          echo "✔ from main"
+
   versions:
     runs-on: ubuntu-latest
     steps:
