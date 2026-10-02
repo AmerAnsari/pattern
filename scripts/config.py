@@ -71,10 +71,6 @@ def main() -> int:
         print(f"decay after  : {config.get('decay_sessions')} sessions")
         return 0
 
-    if args[0] == "json":
-        print(json.dumps(config, indent=2))
-        return 0
-
     if args[0] == "get":
         node = config
         for part in args[1].split("."):
@@ -84,7 +80,11 @@ def main() -> int:
 
     if args[0] == "path":
         target = args[1] if len(args) > 1 else "data"
-        print({"data": data_dir(config, root), "root": root, "plugin": plugin_root()}[target])
+        paths = {"data": data_dir(config, root), "root": root}
+        if target not in paths:
+            print(f"patternscribe: unknown path: {target}", file=sys.stderr)
+            return 2
+        print(paths[target])
         return 0
 
     print(f"patternscribe: unknown config command: {args[0]}", file=sys.stderr)
