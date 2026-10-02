@@ -21,7 +21,7 @@ config.default.json          shipped defaults
 **It runs inside a live session, never behind one.** No hooks, no background process,
 no scheduled run. Claude may invoke the skill when it sees a correction; that path checks
 `auto_capture` and stops when it is `false`, and it only ever captures. An explicit ask
-always runs. Don't add a hook or background path back.
+always runs.
 
 **Nothing leaves the project.** No telemetry, no network calls, no second model call.
 Data is per project; there is no user-global store and adding one is not an enhancement.
@@ -71,8 +71,3 @@ Before shipping a change to the skill or the merge rules, capture in two
 *different* sessions that share a preference, and check the shared rule reaches
 `(seen 2x)` without a near-duplicate appearing. Then capture a second time in the second
 session and check the count stays at 2. That is the behaviour the whole thing rests on.
-
-## Claude Code only
-
-Support for Cursor, Codex and Gemini CLI was removed before the first release. Don't add
-another host's manifest back.
