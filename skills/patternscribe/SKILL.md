@@ -92,8 +92,9 @@ Distil the session you are in right now. This session's id is `${CLAUDE_SESSION_
 3. Work from the conversation you are in — you do not need the transcript file, you were
    there. Identify what the user corrected, refused, or restated, and ask of each one:
    *would this apply to a different task?* If not, it is not a pattern.
-4. Apply the merge rules in `references/patterns-format.md`. They are not optional; the
-   counter discipline is what makes the file trustworthy.
+4. Apply the merge rules in `references/patterns-format.md`, all six, in order. They
+   are not optional; the counter discipline is what makes the file trustworthy. Decay
+   needs `python3 "$PLUGIN_SCRIPTS/config.py" get decay_sessions`.
    A session counts once. If `journal.md` already has blocks for this session id, it
    was captured earlier in this session: add only evidence those blocks do not already
    cover, and do not increment a rule this session already counted, or bump
@@ -121,10 +122,15 @@ What I'd do instead
   - <actionable steps>
 Not sure about
   - <where the profile is silent, so this part is my opinion, not theirs>
+  - <where two live rules conflict: both, with counts and #K — and which looks current>
 ```
 
 The last section is not optional. Without it, a guess is indistinguishable from a
 learned preference, and the user cannot tell which parts to trust.
+
+Never resolve a conflict between two live rules silently, and never by picking the
+higher count: the older rule usually has more sightings precisely because it is older.
+Show both under **Not sure about**, and say the higher `#K` is probably the current one.
 
 If the profile is empty or silent on everything that matters here, say so directly —
 "nothing learned about this yet, so this is just my read" — and give the opinion anyway.
@@ -135,6 +141,11 @@ Same two learning steps as **suggest**, then do the work instead of printing abo
 Before starting, state in one or two lines which rules you are working under, so the
 user can see the basis when they come back. Stop and ask if the profile is silent on a
 decision that would be expensive to reverse.
+
+Treat two live rules that conflict the same way as silence: before writing anything that
+depends on the choice, ask which applies, showing both with their counts and `#K`. Then
+capture the answer — it is a correction like any other, and the merge rules replace the
+losing rule so the question does not come up again.
 
 ## show — `/patternscribe show`
 

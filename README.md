@@ -39,22 +39,33 @@ hand:
 
 ```markdown
 ## Working agreement — how to collaborate here
-- Ask before committing or pushing, always  (seen 3x, last 2026-09-29)
+- Ask before committing or pushing, always  (seen 3x, last 2026-09-29, #12)
 - Once a design decision is made, build on it — don't return with a menu of
-  options covering ground already settled  (seen 2x, last 2026-09-29)
+  options covering ground already settled  (seen 2x, last 2026-09-29, #12)
 
 ## Engineering defaults — what this user would choose
 - Keep one source of truth for each business rule — never restate it in a
-  second layer  (seen 4x, last 2026-09-29)
+  second layer  (seen 4x, last 2026-09-29, #11)
 
 ## Do / Don't — hard rules from corrections
 ### Don't
-- Don't add speculative abstraction before the second use case exists  (seen 2x)
+- Don't add speculative abstraction before the second use case exists  (seen 2x, last 2026-09-24, #9)
 ```
 
 `(seen Nx)` counts how many separate sessions the preference showed up in. One sighting
 is a hypothesis; five is a rule. Capturing twice in one session still counts that
 session once.
+
+`#12` says which captured session last saw the rule. Preferences change, so a rule that
+goes `decay_sessions` captured sessions (default 10) without coming up moves to
+`## Archive`, where it is kept but no longer followed. It comes back if you show the
+preference again. Only sessions with a capture count, so leaving a project alone for a
+month ages nothing.
+
+A new rule that settles the same choice differently replaces the old one — switch from
+`requests` to `httpx` and the `requests` rule goes, even if you never mention it. If two
+conflicting rules do end up in the profile, `suggest` shows you both and `lead` asks
+which one applies before relying on either.
 
 ## Install
 
@@ -184,7 +195,7 @@ shipped defaults.
 {
   "auto_capture": true,         // capture corrections without being asked
   "use_superpowers": true,      // see below
-  "decay_sessions": 10          // rules unreinforced this long move to Archive
+  "decay_sessions": 10          // captured sessions a rule can go unseen before it is archived
 }
 ```
 

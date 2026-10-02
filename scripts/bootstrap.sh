@@ -33,7 +33,8 @@ sessions analyzed: 0
 Maintained by patternscribe, which updates this file when you run /patternscribe.
 Hand-written bullets are kept. Mark a bullet \`(pinned)\` to protect it from being
 reworded, recounted or archived. \`(seen Nx)\` is how often a pattern has recurred:
-1x is a hypothesis, 5x is a rule.
+1x is a hypothesis, 5x is a rule. \`#K\` is the session count when it was last seen;
+a rule unseen for \`decay_sessions\` captured sessions moves to Archive.
 -->
 
 ## Working agreement — how to collaborate here
