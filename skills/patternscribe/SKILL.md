@@ -43,8 +43,8 @@ from it, saying plainly when it has nothing to say on the matter.
 
 This project keeps a profile of how its owner wants work done, learned from what they
 corrected in past sessions. The profile lives at `<data_dir>/PATTERNS.md`, the evidence
-behind it at `<data_dir>/journal.md`, and `<data_dir>` is `.patternscribe/` unless the config
-says otherwise.
+behind it at `<data_dir>/journal.md`, and `<data_dir>` is always `.patternscribe/` at the
+project root.
 
 There are no hooks and no background process. The profile changes only inside a live
 session: when the user asks, or — unless `auto_capture` is `false` — when you notice a

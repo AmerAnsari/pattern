@@ -1,6 +1,5 @@
 {
   "auto_capture": true,
   "use_superpowers": true,
-  "data_dir": ".patternscribe",
   "decay_sessions": 10
 }

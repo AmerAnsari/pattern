@@ -8,11 +8,10 @@ project learns and the settings it learns under both stay inside that project.
 from __future__ import annotations
 
 import json
-import re
 import sys
 from pathlib import Path
 
-CONFIG_RELPATH = Path(".patternscribe") / "config.json"
+DATA_DIRNAME = ".patternscribe"
 
 
 def plugin_root() -> Path:
@@ -28,18 +27,11 @@ def project_root(start: str | Path | None = None) -> Path:
     return current
 
 
-def slug(path: Path) -> str:
-    return re.sub(r"[^A-Za-z0-9]+", "-", str(path)).strip("-")
-
-
 def load(root: Path | None = None) -> dict:
     root = root or project_root()
     config = json.loads((plugin_root() / "config.default.json").read_text(encoding="utf-8"))
 
-    # The override always lives at this fixed path, even when `data_dir` points
-    # the learned files somewhere else — otherwise finding the config would
-    # require already having read it.
-    override_path = root / CONFIG_RELPATH
+    override_path = data_dir(root) / "config.json"
     if override_path.is_file():
         try:
             override = json.loads(override_path.read_text(encoding="utf-8"))
@@ -51,11 +43,10 @@ def load(root: Path | None = None) -> dict:
     return config
 
 
-def data_dir(config: dict, root: Path | None = None) -> Path:
-    root = root or project_root()
-    raw = str(config.get("data_dir") or ".patternscribe").replace("{slug}", slug(root))
-    path = Path(raw).expanduser()
-    return path if path.is_absolute() else root / path
+def data_dir(root: Path | None = None) -> Path:
+    """Always `<project root>/.patternscribe`. Not configurable: the profile stays
+    inside the project it describes."""
+    return (root or project_root()) / DATA_DIRNAME
 
 
 def main() -> int:
@@ -65,7 +56,7 @@ def main() -> int:
 
     if not args or args[0] == "show":
         print(f"project root : {root}")
-        print(f"data dir     : {data_dir(config, root)}")
+        print(f"data dir     : {data_dir(root)}")
         print(f"auto capture : {config.get('auto_capture')}")
         print(f"superpowers  : {config.get('use_superpowers')}")
         print(f"decay after  : {config.get('decay_sessions')} sessions")
@@ -80,7 +71,7 @@ def main() -> int:
 
     if args[0] == "path":
         target = args[1] if len(args) > 1 else "data"
-        paths = {"data": data_dir(config, root), "root": root}
+        paths = {"data": data_dir(root), "root": root}
         if target not in paths:
             print(f"patternscribe: unknown path: {target}", file=sys.stderr)
             return 2

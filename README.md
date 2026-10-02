@@ -90,7 +90,7 @@ Requires Python 3.8+ and bash.
 | `/patternscribe show` | Prints the profile |
 | `/patternscribe why <rule>` | Shows the dated evidence behind a rule |
 | `/patternscribe forget <rule>` | Removes a rule and stops it being re-learned |
-| `/patternscribe config` | Auto-capture, data location, superpowers toggle |
+| `/patternscribe config` | Auto-capture and superpowers toggles; where the profile lives |
 
 You don't have to use the slash form. "Run patternscribe", "remember that", or "what
 have you learned about how I work?" work too.
@@ -184,7 +184,6 @@ shipped defaults.
 {
   "auto_capture": true,         // capture corrections without being asked
   "use_superpowers": true,      // see below
-  "data_dir": ".patternscribe", // move the profile elsewhere if you'd rather
   "decay_sessions": 10          // rules unreinforced this long move to Archive
 }
 ```
