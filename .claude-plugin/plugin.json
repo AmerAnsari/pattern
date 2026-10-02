@@ -1,7 +1,7 @@
 {
   "name": "patternscribe",
   "displayName": "Patternscribe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Turns the corrections you give Claude into a per-project profile it follows next time.",
   "author": {
     "name": "Amer Ansari"
