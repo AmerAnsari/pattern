@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
 # Create this project's data directory, if it isn't there already.
-# Idempotent: existing files are never touched.
-#
-# Usage: bootstrap.sh [project-root]
+# Idempotent: existing files are never touched. The /patternscribe skill runs
+# this before every capture, from the session's working directory.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# The project root comes from the caller, or from where the shell is.
-ROOT="${1:-$(python3 "$HERE/config.py" path root)}"
-
-DATA="$(cd "$ROOT" && python3 "$HERE/config.py" path data)"
+ROOT="$(python3 "$HERE/config.py" path root)"
+DATA="$(python3 "$HERE/config.py" path data)"
 mkdir -p "$DATA"
 
 if [ ! -f "$DATA/config.json" ]; then

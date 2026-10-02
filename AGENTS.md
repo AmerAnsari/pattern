@@ -62,7 +62,6 @@ No test framework — this is shell and stdlib Python.
 ```bash
 claude plugin validate .
 python3 scripts/config.py show
-bash scripts/bootstrap.sh <a scratch project>
 claude --plugin-dir . # correct it in a session; check it captures, and doesn't with
                       # "auto_capture": false unless you ask
 ```
