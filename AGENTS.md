@@ -12,7 +12,7 @@ how its owner wants work done — when Claude notices a correction, or when aske
 ```
 .claude-plugin/              plugin and marketplace manifests
 skills/patternscribe/        the /patternscribe skill, and the profile format it follows
-lib/                         config resolution and bootstrap
+scripts/                     config resolution and bootstrap, plus the version tooling
 config.default.json          shipped defaults
 ```
 
@@ -26,7 +26,7 @@ always runs.
 **Nothing leaves the project.** No telemetry, no network calls, no second model call.
 Data is per project; there is no user-global store and adding one is not an enhancement.
 
-**No third-party dependencies.** `lib/` is Python standard library only, plus bash. This
+**No third-party dependencies.** `scripts/` is Python standard library only, plus bash. This
 installs into other people's repos; it does not get to bring a dependency tree with it.
 
 **Sessions are counted once.** `journal.md` heads every block with the session id, which
@@ -61,8 +61,8 @@ No test framework — this is shell and stdlib Python.
 
 ```bash
 claude plugin validate .
-python3 lib/config.py show
-bash lib/bootstrap.sh <a scratch project>
+python3 scripts/config.py show
+bash scripts/bootstrap.sh <a scratch project>
 claude --plugin-dir . # correct it in a session; check it captures, and doesn't with
                       # "auto_capture": false unless you ask
 ```

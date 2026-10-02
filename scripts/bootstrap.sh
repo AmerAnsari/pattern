@@ -5,12 +5,12 @@
 # Usage: bootstrap.sh [project-root]
 set -euo pipefail
 
-LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # The project root comes from the caller, or from where the shell is.
-ROOT="${1:-$(python3 "$LIB/config.py" path root)}"
+ROOT="${1:-$(python3 "$HERE/config.py" path root)}"
 
-DATA="$(cd "$ROOT" && python3 "$LIB/config.py" path data)"
+DATA="$(cd "$ROOT" && python3 "$HERE/config.py" path data)"
 mkdir -p "$DATA"
 
 if [ ! -f "$DATA/config.json" ]; then

@@ -14,7 +14,7 @@ Subcommand: `$ARGUMENTS`
   it, remember something, show the profile, and so on. Always do it, whatever the
   config says. Map their words to a subcommand below; "remember that" is **capture**.
 - **You started it on your own** because the user corrected you, refused an action, or
-  restated a preference. First run `python3 "$PLUGIN_LIB/config.py" get auto_capture`.
+  restated a preference. First run `python3 "$PLUGIN_SCRIPTS/config.py" get auto_capture`.
   If it prints `false`, save nothing, and end your reply with this line so the user
   can keep it if they want to:
 
@@ -58,10 +58,10 @@ user gave two minutes ago is worse than no opinion, because it sounds informed.
 Resolve everything through the config rather than assuming a layout:
 
 ```bash
-PLUGIN_LIB="${CLAUDE_SKILL_DIR}/../../lib"
-python3 "$PLUGIN_LIB/config.py" show          # merged settings
-python3 "$PLUGIN_LIB/config.py" path data     # <data_dir>
-bash "$PLUGIN_LIB/bootstrap.sh"               # create it if missing (idempotent)
+PLUGIN_SCRIPTS="${CLAUDE_SKILL_DIR}/../../scripts"
+python3 "$PLUGIN_SCRIPTS/config.py" show          # merged settings
+python3 "$PLUGIN_SCRIPTS/config.py" path data     # <data_dir>
+bash "$PLUGIN_SCRIPTS/bootstrap.sh"               # create it if missing (idempotent)
 ```
 
 ## Before you edit the profile
@@ -87,7 +87,7 @@ discipline, inlined so this plugin stands alone:
 
 Distil the session you are in right now. This session's id is `${CLAUDE_SESSION_ID}`.
 
-1. Run `bash "$PLUGIN_LIB/bootstrap.sh"`.
+1. Run `bash "$PLUGIN_SCRIPTS/bootstrap.sh"`.
 2. Read `<data_dir>/PATTERNS.md`.
 3. Work from the conversation you are in — you do not need the transcript file, you were
    there. Identify what the user corrected, refused, or restated, and ask of each one:
@@ -157,7 +157,7 @@ when, in which session. If the rule is in `PATTERNS.md` but has no journal entry
 
 ## config — `/patternscribe config`
 
-Run `python3 "$PLUGIN_LIB/config.py" show`, explain the resolved values, and edit
+Run `python3 "$PLUGIN_SCRIPTS/config.py" show`, explain the resolved values, and edit
 `<project>/.patternscribe/config.json` when asked. That file holds only overrides; anything
 absent falls back to the plugin's `config.default.json`.
 
