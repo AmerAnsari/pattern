@@ -2,10 +2,13 @@
 
 **Your agent forgets every correction you give it. This makes them stick.**
 
-`patternscribe` reads each finished session, works out what your corrections say about how you
-want work done, and writes those conclusions to a file that every later session reads
-before it starts. Ask it for its opinion with `/patternscribe suggest`, or let it run with what
-it has learned using `/patternscribe lead`.
+Run `/patternscribe` at the end of a session and it works out what your corrections say
+about how you want work done, then writes those conclusions to a file in your project.
+Ask it for its opinion with `/patternscribe suggest`, or let it run with what it has
+learned using `/patternscribe lead`.
+
+It only ever runs when you type it. There are no hooks, nothing runs in the background,
+and Claude cannot invoke it on its own.
 
 ## The problem
 
@@ -14,27 +17,20 @@ model."* It fixes it. The session ends.
 
 Tomorrow it does exactly the same thing, and you type the same sentence again.
 
-Session transcripts already record these moments precisely — when you stopped the agent,
-and what you typed to explain why. Nothing reads them. `patternscribe` does.
-
 ## How it works
 
 ```
-session exits
+you correct the agent during a session
    |
-   v  session-end hook  (shell, ~30ms, never delays your exit)
-   |- nothing worth analysing?  -> stop, costs nothing
-   |- already analysed?         -> stop
-   v
-   detached background run, cost-capped
+   v  /patternscribe
    |- reads the profile, merges in what this session proved
    v
 <project>/.patternscribe/PATTERNS.md
 
-next session starts
+a later session
    |
-   v  injected into its context automatically
-   "[patternscribe] 14 rules active. Added after the last session: + …"
+   v  /patternscribe suggest   or   /patternscribe lead
+   |- reads the profile and works under it
 ```
 
 After a few sessions `PATTERNS.md` looks like this — every line learned, none written by
@@ -56,7 +52,8 @@ hand:
 ```
 
 `(seen Nx)` counts how many separate sessions the preference showed up in. One sighting
-is a hypothesis; five is a rule. The highest counts are injected first.
+is a hypothesis; five is a rule. Running `/patternscribe` twice in one session still
+counts that session once.
 
 ## Install
 
@@ -68,51 +65,57 @@ claude plugin marketplace add ameransari/patternscribe
 claude plugin install patternscribe@ameransari --scope local
 ```
 
-Restart your session. That is the entire setup — the hooks ship with the plugin, so
-there is no config file to edit and nothing to add to your settings.
+Or from inside Claude Code: `/plugin`, pick patternscribe, then **Install for you, in
+this repo only (local scope)**.
 
-**Why `--scope local`.** It enables the plugin for you, in this project only, recorded in
-`.claude/settings.local.json`, which stays out of git. The hooks then run only in sessions
-started here. Every other directory on your machine is left alone, and nobody else on
-the project gets it unless they install it too.
+**Why local scope.** It enables the plugin for you, in this project only, recorded in
+`.claude/settings.local.json`, which stays out of git. Nobody else on the project gets
+it unless they install it too. Claude Code's own default is user scope, and a plugin
+cannot change that, so pass `--scope local` yourself.
 
-Repeat the install in each project you want it in. If you do want it everywhere, use
-`--scope user` instead. That runs the hooks in every Claude Code session, and any
-session that ends in a directory with no profile yet creates a `.patternscribe/` there
-(in your home directory too). To share it with a team instead, `--scope project` records
-it in the committed `.claude/settings.json`.
+If you install at user scope anyway, nothing happens in other directories until you
+type `/patternscribe` there. The plugin has no hooks, so it never writes anything you
+did not ask for.
 
-Requires Python 3.8+ and bash. Both are already there on macOS and Linux; on Windows the
-hooks use Git Bash if it is installed and skip quietly if not.
+Requires Python 3.8+ and bash.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
+| `/patternscribe` | Records what this session taught, right now — use it after you correct something |
 | `/patternscribe suggest` | Learns from this session, then tells you how *you* would have done it and where the current approach diverges |
-| `/patternscribe` | Records what this session taught, right now — use it the moment you correct something |
 | `/patternscribe lead` | Learns, then carries on with the work under your profile |
 | `/patternscribe show` | Prints the profile |
 | `/patternscribe why <rule>` | Shows the dated evidence behind a rule |
 | `/patternscribe forget <rule>` | Removes a rule and stops it being re-learned |
-| `/patternscribe config` | Model, runner, data location, superpowers toggle |
-| `/patternscribe doctor` | Diagnoses hooks, transcripts, model, queue |
+| `/patternscribe config` | Data location, superpowers toggle |
 
 `/patternscribe suggest` always learns before it advises. An opinion that ignores the
 correction you gave ten minutes ago is worse than no opinion, because it sounds
 informed. Its output ends with a **"Not sure about"** section listing where your profile
 is silent — so you can tell learned preference from the model's own guess.
 
+### Having every session follow the profile
+
+Patternscribe does not inject anything into your sessions. If you want the profile in
+front of every session in a project, add this line to that project's `CLAUDE.md`:
+
+```markdown
+@.patternscribe/PATTERNS.md
+```
+
+That is your choice to make, and removing the line undoes it.
+
 ## What appears in your repo
 
-On first run, one directory:
+The first `/patternscribe` in a project creates one directory:
 
 ```
 <your project>/.patternscribe/
   PATTERNS.md    the profile — readable, editable, yours
   journal.md     the evidence behind every rule, with dates and quotes
   config.json    your overrides (starts nearly empty)
-  state/         locks, queues, logs — self-gitignored, never shows in git status
 ```
 
 Commit it to share the profile with your team, or add `.patternscribe/` to `.gitignore` to
@@ -123,7 +126,7 @@ nothing is written outside the project.
 
 ### Editing it by hand
 
-It is a markdown file; edit it. Mark a bullet `(pinned)` and automation will never
+It is a markdown file; edit it. Mark a bullet `(pinned)` and `/patternscribe` will never
 reword, recount or archive it:
 
 ```markdown
@@ -132,62 +135,24 @@ reword, recount or archive it:
 
 ## What it costs
 
-One background model call per session that has something in it, capped by
-`budget_usd` (default `$0.50`) and usually well under that.
-
-Sessions with no corrections, no refusals and no edits are skipped before anything is
-spent — the check is a local script, not a model. In practice most sessions cost
-nothing.
-
-Set `"enabled": false` in `.patternscribe/config.json` to stop background runs entirely;
-`/patternscribe` and `/patternscribe suggest` keep working, since they run inside your live session.
-
-## What it runs and what it sends
-
-Stated plainly, because it runs unattended:
-
-**It runs one program: the CLI named in `runner.command`** — by default `claude`, the agent
-you already have installed. It is launched detached after a session ends, with the prompt on
-stdin and a spending cap. Nothing is downloaded and no code arrives from anywhere at run
-time; everything that executes is in this repository.
-
-**That CLI sends the digest to whichever model provider it is configured for**, under your
-own account and credentials. This plugin has no server, no endpoint and no account of its
-own, and nothing is ever sent to its author.
-
-**The runner receives no credentials from this plugin.** It gets a fixed allowlist of
-variables that authenticate nothing — `PATH`, `HOME`, locale, proxy and certificate
-settings — and finds its own credentials the way it normally does, from its own config or
-keychain. On a typical machine that is 10 variables out of 60.
-
-If your runner authenticates from an environment variable instead, name it yourself:
-
-```jsonc
-{ "runner": { "pass_env": ["YOUR_RUNNERS_KEY_VARIABLE"] } }
-```
-
-Name the variable your runner actually reads. `pass_env` is empty by default, and this
-plugin never decides on its own which of your secrets to hand to a program that talks to
-the network — you do.
+Nothing beyond the session you are already in. `/patternscribe` runs as part of that
+session, on its model, the moment you type it. There is no second model call and no
+separate process.
 
 ## Privacy
 
 Permanent link to this section: [Privacy](https://github.com/AmerAnsari/patternscribe#privacy)
 
-- Nothing leaves your machine except that one model call, which your agent already makes.
-- Nothing is written outside the project directory.
-- Transcripts are reduced locally to a small digest first. **Tool output and file
-  contents are never included** — only which tools ran, with which paths, and what you
-  said.
-- Credential-shaped strings are stripped before anything is sent, and `redact` in the
-  config excludes paths (`.env*`, `*.pem`, `*.key`, `secrets/**` by default).
-- The profile records how you work, never what you worked on. Secrets, code, personal
-  data and one-off task facts are out of scope by design.
+- Patternscribe sends nothing anywhere. It has no server, no endpoint, no account of its
+  own, and makes no network calls. It runs inside your Claude Code session, which talks
+  to the model the way it always does.
+- Nothing is written outside the project directory, and nothing is written at all until
+  you type `/patternscribe`.
+- The profile records how you work, never what you worked on. Secrets, code, file
+  contents, personal data and one-off task facts are out of scope by design.
 - `journal.md` quotes what you said, so you can see the evidence behind a rule. If you
   typed something personal in a correction, that sentence can be quoted there. It stays
   on your machine like everything else, and deleting the line removes it.
-- `state/distill.log` records the command's shape, never the prompt or the profile — it
-  is safe to paste into a bug report.
 
 ## Configuration
 
@@ -196,53 +161,18 @@ shipped defaults.
 
 ```jsonc
 {
-  "enabled": true,
-  "use_superpowers": true,      // live /patternscribe commands only; see note below
-  "data_dir": ".patternscribe",       // move the profile elsewhere if you'd rather
-  "budget_usd": 0.50,           // hard cap per background run
-  "min_signal": 1,              // raise to only analyse eventful sessions
-  "decay_sessions": 10,         // rules unreinforced this long move to Archive
-  "redact": [".env*", "*.pem", "*.key", "secrets/**"],
-
-  "runner": {
-    "command": "claude",
-    "model": null,              // null -> probe for Opus
-    "pass_env": []              // env vars to forward; none by default
-  }
+  "use_superpowers": true,      // see below
+  "data_dir": ".patternscribe", // move the profile elsewhere if you'd rather
+  "decay_sessions": 10          // rules unreinforced this long move to Archive
 }
 ```
 
 ### Superpowers
 
-`use_superpowers` applies to the **live** `/patternscribe` commands. When the
-[Superpowers](https://github.com/obra/superpowers) plugin is installed and enabled, they
-use its skill-writing and verification skills before touching your profile.
-
-The **background distiller does not use it**, whatever this is set to. It runs with a
-minimal tool set — read, write, edit, glob, grep — and no ability to invoke a skill, which
-is deliberate: the less that unattended run can reach, the better. It follows the same
-discipline written out inline in `SKILL.md` instead.
-
-So with Superpowers disabled or absent, nothing breaks and nothing is missing from the
-automatic capture. `claude plugin list` tells you whether it is enabled.
-
-### The model
-
-The default is Opus, checked once and cached for 30 days. **If Opus isn't available on
-your plan, nothing is silently downgraded** — a profile built by a weaker model is worse
-than no profile, and you would never have been told. Instead background capture pauses
-and every session start says:
-
-```
-[patternscribe] Opus unavailable. Set runner.model in .patternscribe/config.json
-          or run /patternscribe config. Auto-capture is paused until then.
-```
-
-Set it and capture resumes:
-
-```jsonc
-{ "runner": { "model": "sonnet" } }
-```
+When the [Superpowers](https://github.com/obra/superpowers) plugin is installed and
+enabled, `/patternscribe` uses its skill-writing and verification skills before touching
+your profile. Without it, nothing breaks: the same discipline is written out inline in
+`SKILL.md`. `claude plugin list` tells you whether it is enabled.
 
 ## Uninstall
 
@@ -250,15 +180,9 @@ Set it and capture resumes:
 claude plugin uninstall patternscribe --scope local
 ```
 
-Use the scope you installed with.
-
-Then `rm -rf .patternscribe/` in any project you want to forget. That's all of it — nothing is
-installed outside the plugin directory and the projects you used it in.
-
-## Credits
-
-The polyglot hook wrapper technique comes from
-[Superpowers](https://github.com/obra/superpowers) (MIT).
+Use the scope you installed with. Then `rm -rf .patternscribe/` in any project you want
+to forget. That's all of it — nothing is installed outside the plugin directory and the
+projects you used it in.
 
 ## License
 

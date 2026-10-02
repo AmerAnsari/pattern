@@ -7,26 +7,16 @@ set -euo pipefail
 
 LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# The project root comes from the caller, or from this plugin's own variable, or
-# from asking the shell where it is. Nothing here reads the installer's
-# environment — see the note in lib/config.py about what the runner is given.
-ROOT="${1:-${PATTERNSCRIBE_CWD:-$(pwd)}}"
+# The project root comes from the caller, or from where the shell is.
+ROOT="${1:-$(python3 "$LIB/config.py" path root)}"
 
-DATA="$(PATTERNSCRIBE_CWD="$ROOT" python3 "$LIB/config.py" path data)"
-STATE="$DATA/state"
-
-mkdir -p "$STATE"
-
-# Transient files are the plugin's business, not the repo's.
-if [ ! -f "$STATE/.gitignore" ]; then
-  printf '*\n' > "$STATE/.gitignore"
-fi
+DATA="$(cd "$ROOT" && python3 "$LIB/config.py" path data)"
+mkdir -p "$DATA"
 
 if [ ! -f "$DATA/config.json" ]; then
   cat > "$DATA/config.json" <<'JSON'
 {
-  "_comment": "Overrides for the pattern plugin. Anything you leave out keeps its default; run `/patternscribe config` to see the merged result.",
-  "enabled": true,
+  "_comment": "Overrides for patternscribe. Anything you leave out keeps its default; run `/patternscribe config` to see the merged result.",
   "use_superpowers": true
 }
 JSON
@@ -42,7 +32,7 @@ updated: $(date +%Y-%m-%d)
 sessions analyzed: 0
 
 <!--
-Maintained by the \`pattern\` plugin, which rewrites this file after a session ends.
+Maintained by patternscribe, which updates this file when you run /patternscribe.
 Hand-written bullets are kept. Mark a bullet \`(pinned)\` to protect it from being
 reworded, recounted or archived. \`(seen Nx)\` is how often a pattern has recurred:
 1x is a hypothesis, 5x is a rule.

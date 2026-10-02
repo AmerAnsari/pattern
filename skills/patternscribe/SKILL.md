@@ -1,9 +1,27 @@
 ---
 name: patternscribe
-description: Use when the user asks what you have learned about how they work, asks how they would have done something, wants your point of view on an approach before committing to it, corrects you and wants that correction remembered, or asks to record, show, explain, forget or configure learned patterns. Also use when a session starts with unanalysed sessions pending.
+description: Learn from this session, then show what you've learned or give your point of view
+argument-hint: "[suggest | lead | show | why <rule> | forget <rule> | config]"
+disable-model-invocation: true
 ---
 
 # Patternscribe
+
+Subcommand: `$ARGUMENTS`
+
+Dispatch:
+
+- empty → **capture**: distil this session into the profile now
+- `suggest` (or `pov`, `advise`) → **suggest**: capture first, then print your point of
+  view against the refreshed profile, changing nothing
+- `lead` → **lead**: capture first, then continue the work under the profile
+- `show` (or `list`) → **show**
+- `why <text>` → **why**: the journal evidence behind that rule
+- `forget <text>` → **forget**
+- `config` (or `settings`) → **config**
+
+Anything else: treat it as a question about the profile. Read `PATTERNS.md` and answer
+from it, saying plainly when it has nothing to say on the matter.
 
 ## Overview
 
@@ -12,47 +30,25 @@ corrected in past sessions. The profile lives at `<data_dir>/PATTERNS.md`, the e
 behind it at `<data_dir>/journal.md`, and `<data_dir>` is `.patternscribe/` unless the config
 says otherwise.
 
-Most of the time the profile maintains itself: a hook analyses each finished session in
-the background. This skill is for the parts that need a live agent — capturing a
-correction the moment it happens, explaining why a rule exists, and giving an opinion
-grounded in the profile rather than in generic best practice.
+Nothing here runs on its own. There are no hooks and no background process: the profile
+changes only when the user types `/patternscribe`, and this skill cannot be triggered by
+anything else. Do the subcommand asked for, then stop.
 
 **Core principle:** learn before you advise. An opinion that ignores the correction the
 user gave two minutes ago is worse than no opinion, because it sounds informed.
-
-## When to Use
-
-- The user corrects you and you want it to stick → **capture**
-- "How would I have done this?" / "What do you think?" / "Is this the right approach?"
-  → **suggest**
-- "Take it from here" / they are stepping away mid-task → **lead**
-- "What have you learned?" → **show**
-- "Why do you keep doing X?" → **why**
-- "Stop doing X" / "that rule is wrong" → **forget**
-- Session start reported unanalysed sessions → **capture** (drains the queue)
-- Anything about the model, runner, superpowers toggle or where data lives → **config**
-- Hooks not firing, nothing being learned → **doctor**
-
-Do not use this skill to look up project conventions — those live in the project's own
-context file and do-don't skills. This is only for preferences learned from behaviour.
 
 ## Paths
 
 Resolve everything through the config rather than assuming a layout:
 
 ```bash
-PLUGIN_LIB="<this skill's plugin>/lib"
+PLUGIN_LIB="${CLAUDE_SKILL_DIR}/../../lib"
 python3 "$PLUGIN_LIB/config.py" show          # merged settings
 python3 "$PLUGIN_LIB/config.py" path data     # <data_dir>
-python3 "$PLUGIN_LIB/config.py" path state    # <data_dir>/state
-bash "$PLUGIN_LIB/bootstrap.sh"               # create them if missing (idempotent)
+bash "$PLUGIN_LIB/bootstrap.sh"               # create it if missing (idempotent)
 ```
 
 ## Before you edit the profile
-
-This section applies to the commands below, which run in a live session. It does not
-apply to the background distiller: that runs with a deliberately minimal tool set and
-cannot invoke a skill at all, so it always follows the inlined checklist.
 
 If `use_superpowers` is true and the superpowers skills are available, invoke
 `superpowers:writing-skills` before rewriting `PATTERNS.md`, and
@@ -73,8 +69,7 @@ discipline, inlined so this plugin stands alone:
 
 ## capture — `/patternscribe`
 
-Distil the session you are in right now. Use it the moment the user corrects you, rather
-than hoping the session-end hook catches it later.
+Distil the session you are in right now. This session's id is `${CLAUDE_SESSION_ID}`.
 
 1. Run `bash "$PLUGIN_LIB/bootstrap.sh"`.
 2. Read `<data_dir>/PATTERNS.md`.
@@ -83,11 +78,12 @@ than hoping the session-end hook catches it later.
    *would this apply to a different task?* If not, it is not a pattern.
 4. Apply the merge rules in `references/patterns-format.md`. They are not optional; the
    counter discipline is what makes the file trustworthy.
-5. Append the evidence to `<data_dir>/journal.md`.
-6. If the session-start hook reported pending sessions, also read
-   `<data_dir>/state/queue`, distil each listed session's digest the same way, and clear
-   the file.
-7. Report what changed in one line.
+   A session counts once. If `journal.md` already has blocks for this session id, it
+   was captured earlier in this session: add only evidence those blocks do not already
+   cover, and do not increment a rule this session already counted, or bump
+   `sessions analyzed` again.
+5. Append the evidence to `<data_dir>/journal.md`, headed with this session's id.
+6. Report what changed in one line.
 
 ## suggest — `/patternscribe suggest`
 
@@ -147,23 +143,7 @@ when, in which session. If the rule is in `PATTERNS.md` but has no journal entry
 
 Run `python3 "$PLUGIN_LIB/config.py" show`, explain the resolved values, and edit
 `<project>/.patternscribe/config.json` when asked. That file holds only overrides; anything
-absent falls back to the plugin's `config.default.json`. See `references/runners.md`
-before changing the `runner` block.
-
-## doctor — `/patternscribe doctor`
-
-Report, in this order, stopping at the first thing that is broken:
-
-- config resolution and data dir — `python3 "$PLUGIN_LIB/config.py" show`
-- whether this project's transcripts are where the adapter looks —
-  `~/.claude/projects/<slugified project path>/` (automatic capture needs them; the
-  manual commands do not)
-- resolved model — `python3 "$PLUGIN_LIB/config.py" resolve-model`, and whether
-  `state/needs-config` exists
-- last run — `tail -20 <data_dir>/state/distill.log`
-- queue depth and `state/analyzed` line count
-- whether `state/lock` is stale (a directory left behind by a killed run; safe to
-  `rmdir` if no distiller is running)
+absent falls back to the plugin's `config.default.json`.
 
 ## Red Flags
 
@@ -181,35 +161,7 @@ These thoughts mean stop — you are about to make the profile worse:
 | "I'll note the API key so I remember the setup" | Never. Secrets, file contents and personal data stay out. |
 | "The project's context file already says this, but restating helps" | It is already in front of every session. Skip it. |
 
-## Decision flow
-
-```dot
-digraph pattern {
-    "User input" [shape=doublecircle];
-    "Correction or preference stated?" [shape=diamond];
-    "Asked for an opinion?" [shape=diamond];
-    "capture" [shape=box];
-    "re-read profile" [shape=box];
-    "print POV + Not sure about" [shape=box];
-    "do the work under the profile" [shape=box];
-    "Stepping away?" [shape=diamond];
-    "Continue normally" [shape=doublecircle];
-
-    "User input" -> "Correction or preference stated?";
-    "Correction or preference stated?" -> "capture" [label="yes"];
-    "Correction or preference stated?" -> "Asked for an opinion?" [label="no"];
-    "capture" -> "Asked for an opinion?";
-    "Asked for an opinion?" -> "re-read profile" [label="yes"];
-    "Asked for an opinion?" -> "Continue normally" [label="no"];
-    "re-read profile" -> "Stepping away?";
-    "Stepping away?" -> "do the work under the profile" [label="yes"];
-    "Stepping away?" -> "print POV + Not sure about" [label="no"];
-}
-```
-
 ## References
 
 - `references/patterns-format.md` — the file contract: sections, counters, pins, decay,
   and the merge rules. Read before any edit to `PATTERNS.md`.
-- `references/runners.md` — pointing the background distiller at a different CLI or a
-  different model.

@@ -1,8 +1,8 @@
 # The PATTERNS.md contract
 
-Both the background distiller and the live `/patternscribe` commands write this file. They
-agree on the format described here, which is why a profile survives being maintained by
-different models on different days.
+The `/patternscribe` commands write this file, and so can a person editing it by hand.
+Everything that writes it follows the format described here, which is why a profile
+survives being maintained by different models on different days.
 
 ## Header
 
@@ -20,15 +20,15 @@ you change anything below.
 
 ## Sections
 
-Exactly these, in this order. Never rename them, never add new ones — the session-start
-hook reads section names to group what it injects.
+Exactly these, in this order. Never rename them, never add new ones — `show` and
+`suggest` group rules by these names.
 
 | Section | Holds |
 |---|---|
 | `## Working agreement — how to collaborate here` | When to ask vs. decide, how much to explain, what to do before finishing, tone. |
 | `## Engineering defaults — what this user would choose` | The technical calls they make by default. |
 | `## Do / Don't — hard rules from corrections` | Anything stated as an instruction. Has `### Do` and `### Don't`. |
-| `## Archive — not reinforced recently` | Decayed rules. Still readable, not injected. |
+| `## Archive — not reinforced recently` | Decayed rules. Still readable, never applied. |
 
 An empty section holds the line `_Nothing learned yet._`. Remove that line when you add
 the section's first real bullet, and restore it if you ever empty one.
@@ -49,8 +49,8 @@ One line each. Two spaces before the count. Write what to *do*:
 | `Reach for select_related before writing any list view` | `Likes efficient queries` | Specific beats sentiment. |
 
 `(seen Nx)` counts **separate sessions** in which the pattern appeared, not how many
-times it was mentioned. 1x is a hypothesis; 5x is a rule; the session-start hook shows
-the highest counts first.
+times it was mentioned. 1x is a hypothesis; 5x is a rule; `show` lists the
+highest counts first.
 
 `(pinned)` marks a bullet a person wrote or protected deliberately. Never reword, never
 recount, never archive, never remove it. It is the only guarantee a human has that
@@ -76,9 +76,11 @@ Applied by anything that writes the file:
 
 ## Sessions are counted once
 
-`state/analyzed` lists every session id already distilled, and the session-end hook
-refuses anything on that list. A count of `5x` therefore means five distinct sessions.
-Do not re-analyse a session to "double-check" — it corrupts the only signal the file has.
+`journal.md` heads every block with the session it came from, and that is the ledger.
+Before incrementing anything, check whether this session already has blocks there: if
+`/patternscribe` already ran in it, the rules it credited stay credited once. A count of
+`5x` therefore means five distinct sessions. Do not re-count a session to
+"double-check" — it corrupts the only signal the file has.
 
 ## What never goes in
 
